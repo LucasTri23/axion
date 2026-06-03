@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<!-- Renomeie este arquivo para algo menos previsível, ex: axion-painel-x7k2.html -->
+<title>Axion — Painel Administrativo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#080F1E; --dark:#0D1B3E; --mid:#132E6A;
+  --orange:#E8751A; --orange2:#FF8F2C;
+  --sky:#3AAFE4; --white:#fff; --gray:#7B8899; --gray2:#B8C4D0;
+  --green:#22c55e; --red:#ef4444; --yellow:#f59e0b;
+  --sidebar-w:240px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--navy);color:var(--white);overflow-x:hidden}
+
+/* ── LOGIN ── */
+#login-screen{position:fixed;inset:0;background:linear-gradient(135deg,#04090F 0%,#080F1E 50%,#0D1B3E 100%);display:flex;align-items:center;justify-content:center;z-index:9999}
+.login-card{background:rgba(255,255,255,.04);border:1px solid rgba(58,175,228,.18);border-radius:24px;padding:52px 44px;width:100%;max-width:420px;text-align:center;box-shadow:0 32px 80px rgba(0,0,0,.6)}
+.login-logo{height:52px;margin-bottom:28px;filter:drop-shadow(0 4px 16px rgba(232,117,26,.3))}
+.login-card h2{font-family:'Bebas Neue',sans-serif;font-size:28px;letter-spacing:2px;margin-bottom:6px}
+.login-card>p{font-size:13px;color:var(--gray);margin-bottom:36px}
+.login-shield{font-size:14px;display:flex;align-items:center;justify-content:center;gap:6px;background:rgba(232,117,26,.1);border:1px solid rgba(232,117,26,.25);border-radius:8px;padding:8px 16px;margin-bottom:28px;color:rgba(255,255,255,.65)}
+.fg{display:flex;flex-direction:column;gap:6px;margin-bottom:16px;text-align:left}
+.fg label{font-size:12px;font-weight:600;color:var(--gray2);letter-spacing:.4px;text-transform:uppercase}
+.fg input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:13px 16px;color:#fff;font-size:15px;font-family:'Inter',sans-serif;outline:none;transition:.25s}
+.fg input:focus{border-color:var(--sky);background:rgba(58,175,228,.06)}
+.btn-login{width:100%;padding:15px;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:.3s;margin-top:6px}
+.btn-login:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(232,117,26,.45)}
+.btn-login:disabled{opacity:.6;cursor:not-allowed;transform:none}
+.login-error{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:10px 14px;font-size:13px;color:#fca5a5;margin-top:12px}
+.login-lock{background:rgba(245,158,11,.1);border:1px solid rgba(245,158,11,.3);border-radius:8px;padding:12px 14px;font-size:13px;color:#fde68a;margin-top:12px}
+.login-attempts{font-size:11.5px;color:var(--gray);margin-top:10px}
+
+/* ── APP LAYOUT ── */
+#app{display:none;height:100vh;overflow:hidden}
+.layout{display:flex;height:100%}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);background:#050B16;border-right:1px solid rgba(58,175,228,.1);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.sidebar-header{padding:24px 20px 16px;border-bottom:1px solid rgba(255,255,255,.06)}
+.sidebar-logo{display:flex;align-items:center;gap:10px}
+.sidebar-logo img{height:34px}
+.sidebar-logo-badge{background:linear-gradient(135deg,var(--orange),var(--orange2));border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase}
+.sidebar-nav{flex:1;padding:12px 0;overflow-y:auto}
+.nav-item{display:flex;align-items:center;gap:11px;padding:11px 20px;color:var(--gray);text-decoration:none;font-size:14px;font-weight:500;cursor:pointer;transition:.2s;position:relative;border:none;background:none;width:100%;text-align:left}
+.nav-item:hover{color:#fff;background:rgba(255,255,255,.04)}
+.nav-item.active{color:#fff;background:rgba(58,175,228,.1)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:8px;bottom:8px;width:3px;background:var(--orange);border-radius:0 3px 3px 0}
+.nav-icon{font-size:16px;width:20px;text-align:center;flex-shrink:0}
+.nav-badge{margin-left:auto;background:var(--orange);color:#fff;border-radius:100px;padding:2px 8px;font-size:11px;font-weight:700}
+.sidebar-footer{padding:16px 20px;border-top:1px solid rgba(255,255,255,.06)}
+.btn-logout{display:flex;align-items:center;gap:9px;width:100%;padding:10px 14px;background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:9px;color:#fca5a5;font-size:13.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.25s}
+.btn-logout:hover{background:rgba(239,68,68,.18);border-color:rgba(239,68,68,.4)}
+
+/* ── MAIN ── */
+.main-content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 32px;height:62px;background:#060D1A;border-bottom:1px solid rgba(58,175,228,.1);flex-shrink:0}
+.topbar h1{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;color:#fff}
+.topbar-right{display:flex;align-items:center;gap:20px}
+.topbar-time{font-size:12.5px;color:var(--gray)}
+.user-chip{display:flex;align-items:center;gap:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:100px;padding:6px 14px}
+.user-avatar{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange2));display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700}
+.user-chip span{font-size:13px;color:var(--gray2)}
+.page-area{flex:1;overflow-y:auto;padding:28px 32px}
+
+/* ── CARDS / SHARED ── */
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.08);border-radius:16px;padding:24px}
+.card-title{font-size:15px;font-weight:700;margin-bottom:4px}
+.card-sub{font-size:12.5px;color:var(--gray);margin-bottom:20px}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.section-title::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.07)}
+
+/* ── DASHBOARD ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px}
+.kpi{background:linear-gradient(145deg,rgba(19,46,106,.3),rgba(13,27,62,.5));border:1px solid rgba(58,175,228,.1);border-radius:14px;padding:22px 20px;position:relative;overflow:hidden}
+.kpi::after{content:'';position:absolute;top:0;right:0;width:60px;height:60px;border-radius:50%;background:rgba(58,175,228,.04);transform:translate(20px,-20px)}
+.kpi-label{font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.6px;margin-bottom:8px}
+.kpi-value{font-family:'Bebas Neue',sans-serif;font-size:44px;line-height:1;margin-bottom:4px}
+.kpi-value.orange{color:var(--orange)}
+.kpi-value.sky{color:var(--sky)}
+.kpi-value.green{color:var(--green)}
+.kpi-value.yellow{color:var(--yellow)}
+.kpi-delta{font-size:12px;color:var(--gray)}
+
+/* ── TABLE ── */
+.tbl-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px}
+.filter-pills{display:flex;gap:8px;flex-wrap:wrap}
+.fpill{padding:7px 16px;border-radius:100px;font-size:12.5px;font-weight:600;border:1px solid rgba(255,255,255,.12);background:transparent;color:var(--gray2);cursor:pointer;transition:.2s;font-family:'Inter',sans-serif}
+.fpill:hover{border-color:var(--sky);color:var(--sky)}
+.fpill.active{background:linear-gradient(135deg,var(--orange),var(--orange2));border-color:transparent;color:#fff}
+.search-box{position:relative}
+.search-box input{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:8px 14px 8px 36px;color:#fff;font-size:13.5px;font-family:'Inter',sans-serif;outline:none;width:220px;transition:.25s}
+.search-box input:focus{border-color:var(--sky)}
+.search-box::before{content:'🔍';position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:13px;pointer-events:none}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+thead th{padding:12px 14px;text-align:left;font-size:11px;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid rgba(255,255,255,.07)}
+tbody tr{border-bottom:1px solid rgba(255,255,255,.04);cursor:pointer;transition:.2s}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+tbody td{padding:14px 14px;vertical-align:top}
+.td-name{font-weight:600}
+.td-company{font-size:12px;color:var(--gray);margin-top:2px}
+.status-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px}
+.status-badge::before{content:'';width:5px;height:5px;border-radius:50%;background:currentColor}
+.badge-novo{background:rgba(58,175,228,.15);color:var(--sky);border:1px solid rgba(58,175,228,.3)}
+.badge-andamento{background:rgba(245,158,11,.12);color:var(--yellow);border:1px solid rgba(245,158,11,.25)}
+.badge-concluido{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
+.badge-cancelado{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.25)}
+.td-actions{display:flex;gap:8px;align-items:center}
+.btn-sm{padding:6px 12px;border-radius:7px;font-size:12px;font-weight:600;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
+.btn-view{background:rgba(58,175,228,.12);color:var(--sky);border:1px solid rgba(58,175,228,.2)}
+.btn-view:hover{background:rgba(58,175,228,.22)}
+.btn-del{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.2)}
+.btn-del:hover{background:rgba(239,68,68,.22)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--gray)}
+.empty-state .empty-icon{font-size:48px;margin-bottom:12px}
+.empty-state p{font-size:14px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(4,9,15,.88);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px)}
+.modal{background:#090F1D;border:1px solid rgba(58,175,228,.2);border-radius:20px;padding:36px;width:100%;max-width:560px;max-height:90vh;overflow-y:auto;position:relative}
+.modal-close{position:absolute;top:16px;right:16px;width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:var(--gray2);cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;transition:.2s}
+.modal-close:hover{background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);color:#fca5a5}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:20px}
+.detail-row{display:flex;gap:8px;margin-bottom:12px;font-size:14px}
+.detail-label{color:var(--gray);min-width:110px;flex-shrink:0;font-size:12.5px;padding-top:1px}
+.detail-value{color:var(--white);line-height:1.6}
+.detail-desc{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px 14px;color:var(--gray2);line-height:1.7;font-size:13.5px;margin-top:4px}
+.status-select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:8px 12px;color:#fff;font-size:13.5px;font-family:'Inter',sans-serif;outline:none;cursor:pointer}
+.status-select option{background:#090F1D}
+.modal-actions{display:flex;gap:10px;margin-top:24px;padding-top:18px;border-top:1px solid rgba(255,255,255,.07)}
+
+/* ── EDITOR ── */
+.editor-tabs{display:flex;gap:4px;margin-bottom:24px;background:rgba(255,255,255,.03);border-radius:10px;padding:4px}
+.etab{padding:9px 18px;border-radius:8px;font-size:13.5px;font-weight:600;border:none;background:transparent;color:var(--gray);cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
+.etab:hover{color:#fff}
+.etab.active{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff}
+.editor-section{display:none}
+.editor-section.active{display:block}
+.ef-group{margin-bottom:20px}
+.ef-group label{display:block;font-size:12px;font-weight:600;color:var(--gray2);letter-spacing:.4px;text-transform:uppercase;margin-bottom:6px}
+.ef-group input,.ef-group textarea{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:11px 14px;color:#fff;font-size:14px;font-family:'Inter',sans-serif;outline:none;transition:.25s;resize:vertical}
+.ef-group textarea{min-height:80px}
+.ef-group input:focus,.ef-group textarea:focus{border-color:var(--sky);background:rgba(58,175,228,.05)}
+.ef-row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.btn-save{display:inline-flex;align-items:center;gap:7px;padding:11px 24px;background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;border:none;border-radius:9px;font-size:14px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:.3s}
+.btn-save:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,117,26,.4)}
+.btn-reset{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--gray2);border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.25s}
+.btn-reset:hover{border-color:var(--gray2);color:#fff}
+.save-bar{display:flex;align-items:center;justify-content:space-between;background:rgba(232,117,26,.06);border:1px solid rgba(232,117,26,.2);border-radius:10px;padding:14px 18px;margin-bottom:20px}
+.save-bar p{font-size:13px;color:rgba(255,255,255,.7)}
+.save-toast{position:fixed;bottom:24px;right:24px;background:var(--green);color:#fff;padding:12px 20px;border-radius:10px;font-size:14px;font-weight:600;z-index:2000;transform:translateY(80px);opacity:0;transition:.35s;display:flex;align-items:center;gap:8px}
+.save-toast.show{transform:translateY(0);opacity:1}
+
+/* ── IMAGE EDITOR ── */
+.img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:20px}
+.img-card{border:1px solid rgba(255,255,255,.08);border-radius:14px;overflow:hidden;background:rgba(255,255,255,.02)}
+.img-preview{height:140px;overflow:hidden;position:relative;background:#0D1B3E}
+.img-preview img{width:100%;height:100%;object-fit:cover}
+.img-preview .img-bg{width:100%;height:100%;background-size:cover;background-position:center}
+.img-badge{position:absolute;top:8px;left:8px;background:rgba(0,0,0,.7);border-radius:6px;padding:3px 8px;font-size:10.5px;color:var(--gray2)}
+.img-card-body{padding:14px}
+.img-card-body h4{font-size:13.5px;font-weight:600;margin-bottom:4px}
+.img-card-body p{font-size:12px;color:var(--gray);margin-bottom:12px}
+.img-actions{display:flex;gap:8px}
+.btn-upload{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:rgba(58,175,228,.12);border:1px solid rgba(58,175,228,.25);color:var(--sky);border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
+.btn-upload:hover{background:rgba(58,175,228,.22)}
+.btn-revert{padding:8px 12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);color:var(--gray);border-radius:8px;font-size:12.5px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.2s}
+.btn-revert:hover{border-color:var(--gray);color:#fff}
+.btn-revert:disabled{opacity:.35;cursor:not-allowed}
+input[type=file]{display:none}
+
+/* ── SETTINGS ── */
+.settings-section{margin-bottom:28px}
+.settings-section h3{font-size:15px;font-weight:700;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid rgba(255,255,255,.07)}
+.btn-danger{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);color:#fca5a5;border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.25s}
+.btn-danger:hover{background:rgba(239,68,68,.22);border-color:rgba(239,68,68,.45)}
+.btn-secondary{display:inline-flex;align-items:center;gap:7px;padding:11px 20px;background:rgba(58,175,228,.1);border:1px solid rgba(58,175,228,.22);color:var(--sky);border-radius:9px;font-size:14px;font-weight:600;cursor:pointer;font-family:'Inter',sans-serif;transition:.25s}
+.btn-secondary:hover{background:rgba(58,175,228,.2)}
+.actions-row{display:flex;gap:12px;flex-wrap:wrap}
+.pass-hint{font-size:12px;color:var(--gray);margin-top:6px}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .kpi-grid{grid-template-columns:repeat(2,1fr)}
+  .sidebar{width:60px}
+  .nav-item span:not(.nav-icon):not(.nav-badge){display:none}
+  .sidebar-header .sidebar-logo span:last-child,.sidebar-header .sidebar-logo-badge{display:none}
+  .sidebar-footer .btn-logout span:last-child{display:none}
+  .page-area{padding:20px 16px}
+  .topbar{padding:0 20px}
+}
+@media(max-width:600px){
+  .ef-row{grid-template-columns:1fr}
+  .kpi-grid{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN ── -->
+<div id="login-screen">
+  <div class="login-card">
+    <img src="img/logo.png" alt="Axion" class="login-logo" onerror="this.style.display='none'">
+    <h2>Painel Administrativo</h2>
+    <p>Acesso restrito — somente pessoal autorizado</p>
+    <div class="login-shield">🔒 Conexão Protegida por Criptografia</div>
+    <form id="login-form">
+      <div class="fg">
+        <label>Senha de Acesso</label>
+        <input type="password" id="login-pass" placeholder="••••••••••" autocomplete="current-password" autofocus>
+      </div>
+      <button type="submit" class="btn-login" id="login-btn">Entrar no Painel</button>
+      <div id="login-error" style="display:none"></div>
+      <div id="login-attempts" class="login-attempts" style="display:none"></div>
+    </form>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="app">
+  <div class="layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="sidebar-logo">
+          <img src="img/logo.png" alt="Axion" onerror="this.style.display='none'">
+          <span class="sidebar-logo-badge">ADM</span>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <button class="nav-item active" data-page="dashboard"><span class="nav-icon">📊</span><span>Dashboard</span></button>
+        <button class="nav-item" data-page="quotes"><span class="nav-icon">📋</span><span>Orçamentos</span><span class="nav-badge" id="nav-badge" style="display:none">0</span></button>
+        <button class="nav-item" data-page="texts"><span class="nav-icon">✏️</span><span>Editar Textos</span></button>
+        <button class="nav-item" data-page="images"><span class="nav-icon">🖼️</span><span>Editar Imagens</span></button>
+        <button class="nav-item" data-page="settings"><span class="nav-icon">⚙️</span><span>Configurações</span></button>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="btn-logout" id="logout-btn"><span>🚪</span><span>Sair</span></button>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <div class="main-content">
+      <header class="topbar">
+        <h1 id="page-title">Dashboard</h1>
+        <div class="topbar-right">
+          <span class="topbar-time" id="topbar-time"></span>
+          <div class="user-chip">
+            <div class="user-avatar">A</div>
+            <span>Administrador</span>
+          </div>
+        </div>
+      </header>
+      <div class="page-area" id="page-area"></div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal" id="modal-inner"></div>
+</div>
+
+<!-- TOAST -->
+<div class="save-toast" id="toast">✔ Salvo com sucesso!</div>
+
+<script>
+// ────────────────────────────────────────────────────────────────
+// CHAVES / CONSTANTES
+// ────────────────────────────────────────────────────────────────
+const K = {
+  PASS:    'axion_pass_hash',
+  SESSION: 'axion_session',
+  QUOTES:  'axion_quotes',
+  CONTENT: 'axion_content',
+  IMAGES:  'axion_images',
+  FAILS:   'axion_auth_fails',
+};
+
+// ────────────────────────────────────────────────────────────────
+// CRYPTO — SHA-256 via Web Crypto API
+// ────────────────────────────────────────────────────────────────
+async function sha256(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+// ────────────────────────────────────────────────────────────────
+// AUTH
+// ────────────────────────────────────────────────────────────────
+const AUTH = {
+  MAX_FAILS: 5,
+  LOCKOUT_MS: 15 * 60 * 1000, // 15 min
+  SESSION_MS: 2 * 60 * 60 * 1000, // 2h
+
+  async init() {
+    if (!localStorage.getItem(K.PASS)) {
+      localStorage.setItem(K.PASS, await sha256('Axion@2025'));
+    }
+  },
+
+  getFailState() {
+    return JSON.parse(localStorage.getItem(K.FAILS) || '{"count":0,"ts":0}');
+  },
+
+  isLocked() {
+    const f = this.getFailState();
+    if (f.count >= this.MAX_FAILS) {
+      const remaining = this.LOCKOUT_MS - (Date.now() - f.ts);
+      if (remaining > 0) return Math.ceil(remaining / 60000);
+      this.resetFails();
+    }
+    return false;
+  },
+
+  resetFails() { localStorage.removeItem(K.FAILS); },
+
+  recordFail() {
+    const f = this.getFailState();
+    f.count++;
+    f.ts = Date.now();
+    localStorage.setItem(K.FAILS, JSON.stringify(f));
+  },
+
+  async login(pass) {
+    const locked = this.isLocked();
+    if (locked) return { ok: false, locked, mins: locked };
+
+    const hash = await sha256(pass);
+    const stored = localStorage.getItem(K.PASS);
+
+    if (hash === stored) {
+      this.resetFails();
+      const token = await sha256(pass + Date.now());
+      sessionStorage.setItem(K.SESSION, JSON.stringify({
+        token,
+        exp: Date.now() + this.SESSION_MS
+      }));
+      return { ok: true };
+    }
+    this.recordFail();
+    const f = this.getFailState();
+    return { ok: false, remaining: this.MAX_FAILS - f.count };
+  },
+
+  isValid() {
+    const s = JSON.parse(sessionStorage.getItem(K.SESSION) || 'null');
+    return s && Date.now() < s.exp;
+  },
+
+  logout() {
+    sessionStorage.removeItem(K.SESSION);
+    location.reload();
+  }
+};
+
+// ────────────────────────────────────────────────────────────────
+// DATA
+// ────────────────────────────────────────────────────────────────
+const DATA = {
+  getQuotes() {
+    return JSON.parse(localStorage.getItem(K.QUOTES) || '[]');
+  },
+  saveQuotes(q) {
+    localStorage.setItem(K.QUOTES, JSON.stringify(q));
+  },
+  addQuote(q) {
+    const list = this.getQuotes();
+    q.id = Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+    q.ts = Date.now();
+    q.status = 'novo';
+    list.unshift(q);
+    this.saveQuotes(list);
+    return q;
+  },
+  updateStatus(id, status) {
+    const list = this.getQuotes().map(q => q.id === id ? {...q, status} : q);
+    this.saveQuotes(list);
+  },
+  deleteQuote(id) {
+    this.saveQuotes(this.getQuotes().filter(q => q.id !== id));
+  },
+
+  getContent() {
+    return JSON.parse(localStorage.getItem(K.CONTENT) || '{}');
+  },
+  setContent(key, val) {
+    const c = this.getContent();
+    c[key] = val;
+    localStorage.setItem(K.CONTENT, JSON.stringify(c));
+  },
+  resetContent() {
+    localStorage.removeItem(K.CONTENT);
+  },
+
+  getImages() {
+    return JSON.parse(localStorage.getItem(K.IMAGES) || '{}');
+  },
+  setImage(key, dataUrl) {
+    const imgs = this.getImages();
+    imgs[key] = dataUrl;
+    localStorage.setItem(K.IMAGES, JSON.stringify(imgs));
+  },
+  removeImage(key) {
+    const imgs = this.getImages();
+    delete imgs[key];
+    localStorage.setItem(K.IMAGES, JSON.stringify(imgs));
+  },
+
+  exportAll() {
+    const data = {
+      quotes: this.getQuotes(),
+      content: this.getContent(),
+      exported: new Date().toISOString()
+    };
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `axion-backup-${new Date().toISOString().slice(0,10)}.json`;
+    a.click();
+  },
+
+  clearQuotes() { localStorage.removeItem(K.QUOTES); },
+  clearAll() {
+    [K.QUOTES, K.CONTENT, K.IMAGES].forEach(k => localStorage.removeItem(k));
+  }
+};
+
+// ────────────────────────────────────────────────────────────────
+// UI HELPERS
+// ────────────────────────────────────────────────────────────────
+function $(id) { return document.getElementById(id); }
+
+function toast(msg = '✔ Salvo com sucesso!', ms = 2800) {
+  const t = $('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), ms);
+}
+
+function openModal(html) {
+  $('modal-inner').innerHTML = html;
+  $('modal').style.display = 'flex';
+}
+function closeModal() {
+  $('modal').style.display = 'none';
+}
+
+function fmt(ts) {
+  return new Date(ts).toLocaleString('pt-BR', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+}
+
+function statusBadge(s) {
+  const map = {
+    novo: ['badge-novo','Novo'],
+    andamento: ['badge-andamento','Em Andamento'],
+    concluido: ['badge-concluido','Concluído'],
+    cancelado: ['badge-cancelado','Cancelado']
+  };
+  const [cls, label] = map[s] || ['badge-novo','Novo'];
+  return `<span class="status-badge ${cls}">${label}</span>`;
+}
+
+function updateNavBadge() {
+  const novos = DATA.getQuotes().filter(q => q.status === 'novo').length;
+  const badge = $('nav-badge');
+  if (novos > 0) { badge.textContent = novos; badge.style.display = ''; }
+  else badge.style.display = 'none';
+}
+
+// ────────────────────────────────────────────────────────────────
+// PAGES
+// ────────────────────────────────────────────────────────────────
+
+/* ── DASHBOARD ── */
+function pageDashboard() {
+  const quotes = DATA.getQuotes();
+  const novos = quotes.filter(q => q.status === 'novo').length;
+  const andamento = quotes.filter(q => q.status === 'andamento').length;
+  const concluido = quotes.filter(q => q.status === 'concluido').length;
+  const today = quotes.filter(q => {
+    const d = new Date(q.ts);
+    const n = new Date();
+    return d.getDate()===n.getDate() && d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear();
+  }).length;
+
+  const recent = quotes.slice(0,5);
+
+  $('page-area').innerHTML = `
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="kpi-label">Total de Orçamentos</div>
+        <div class="kpi-value orange">${quotes.length}</div>
+        <div class="kpi-delta">Todos os pedidos</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Novos Pedidos</div>
+        <div class="kpi-value sky">${novos}</div>
+        <div class="kpi-delta">Aguardando atenção</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Em Andamento</div>
+        <div class="kpi-value yellow">${andamento}</div>
+        <div class="kpi-delta">Em negociação</div>
+      </div>
+      <div class="kpi">
+        <div class="kpi-label">Concluídos</div>
+        <div class="kpi-value green">${concluido}</div>
+        <div class="kpi-delta">Projetos fechados</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section-title">Últimos Pedidos</div>
+      ${recent.length === 0
+        ? `<div class="empty-state"><div class="empty-icon">📭</div><p>Nenhum pedido ainda. Os orçamentos enviados pelo site aparecerão aqui.</p></div>`
+        : `<table>
+            <thead><tr>
+              <th>Nome / Empresa</th>
+              <th>Serviço</th>
+              <th>Data</th>
+              <th>Status</th>
+            </tr></thead>
+            <tbody>
+              ${recent.map(q => `
+                <tr onclick="showQuote('${q.id}')">
+                  <td><div class="td-name">${q.name||'—'}</div><div class="td-company">${q.company||''}</div></td>
+                  <td>${q.service||'—'}</td>
+                  <td>${fmt(q.ts)}</td>
+                  <td>${statusBadge(q.status)}</td>
+                </tr>`).join('')}
+            </tbody>
+          </table>`
+      }
+    </div>
+  `;
+}
+
+/* ── ORÇAMENTOS ── */
+let quoteFilter = 'all', quoteSearch = '';
+
+function pageQuotes() {
+  renderQuotes();
+}
+
+function renderQuotes() {
+  let quotes = DATA.getQuotes();
+  if (quoteFilter !== 'all') quotes = quotes.filter(q => q.status === quoteFilter);
+  if (quoteSearch) {
+    const s = quoteSearch.toLowerCase();
+    quotes = quotes.filter(q =>
+      (q.name||'').toLowerCase().includes(s) ||
+      (q.company||'').toLowerCase().includes(s) ||
+      (q.email||'').toLowerCase().includes(s) ||
+      (q.service||'').toLowerCase().includes(s)
+    );
+  }
+
+  $('page-area').innerHTML = `
+    <div class="card">
+      <div class="tbl-header">
+        <div class="filter-pills">
+          ${[['all','Todos'],['novo','Novos'],['andamento','Em Andamento'],['concluido','Concluídos'],['cancelado','Cancelados']].map(([v,l]) =>
+            `<button class="fpill${quoteFilter===v?' active':''}" onclick="setQuoteFilter('${v}')">${l}</button>`
+          ).join('')}
+        </div>
+        <div class="search-box">
+          <input type="text" id="q-search" placeholder="Buscar..." value="${quoteSearch}" oninput="setQuoteSearch(this.value)">
+        </div>
+      </div>
+
+      ${quotes.length === 0
+        ? `<div class="empty-state"><div class="empty-icon">🔍</div><p>Nenhum pedido encontrado.</p></div>`
+        : `<table>
+            <thead><tr>
+              <th>Nome / Empresa</th>
+              <th>Contato</th>
+              <th>Serviço</th>
+              <th>Data</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr></thead>
+            <tbody>
+              ${quotes.map(q => `
+                <tr>
+                  <td><div class="td-name">${q.name||'—'}</div><div class="td-company">${q.company||''}</div></td>
+                  <td><div style="font-size:13px">${q.email||''}</div><div style="font-size:12px;color:var(--gray)">${q.phone||''}</div></td>
+                  <td style="font-size:13px">${q.service||'—'}</td>
+                  <td style="font-size:12px;color:var(--gray)">${fmt(q.ts)}</td>
+                  <td>${statusBadge(q.status)}</td>
+                  <td>
+                    <div class="td-actions">
+                      <button class="btn-sm btn-view" onclick="showQuote('${q.id}')">Ver</button>
+                      <button class="btn-sm btn-del" onclick="deleteQuote('${q.id}',event)">✕</button>
+                    </div>
+                  </td>
+                </tr>`).join('')}
+            </tbody>
+          </table>`
+      }
+    </div>
+  `;
+}
+
+function setQuoteFilter(f) { quoteFilter = f; renderQuotes(); }
+function setQuoteSearch(v) { quoteSearch = v; renderQuotes(); }
+
+function showQuote(id) {
+  const q = DATA.getQuotes().find(x => x.id === id);
+  if (!q) return;
+  openModal(`
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <h3>📋 Detalhes do Pedido</h3>
+    <div class="detail-row"><span class="detail-label">Nome</span><span class="detail-value">${q.name||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Empresa</span><span class="detail-value">${q.company||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">E-mail</span><span class="detail-value"><a href="mailto:${q.email}" style="color:var(--sky)">${q.email||'—'}</a></span></div>
+    <div class="detail-row"><span class="detail-label">Telefone</span><span class="detail-value">${q.phone||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Serviço</span><span class="detail-value">${q.service||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Data</span><span class="detail-value">${fmt(q.ts)}</span></div>
+    <div style="margin-bottom:16px">
+      <div class="detail-label" style="margin-bottom:8px">Descrição do Projeto</div>
+      <div class="detail-desc">${q.description||'(sem descrição)'}</div>
+    </div>
+    <div class="detail-row" style="align-items:center">
+      <span class="detail-label">Status</span>
+      <select class="status-select" onchange="updateStatus('${q.id}',this.value)">
+        <option value="novo" ${q.status==='novo'?'selected':''}>Novo</option>
+        <option value="andamento" ${q.status==='andamento'?'selected':''}>Em Andamento</option>
+        <option value="concluido" ${q.status==='concluido'?'selected':''}>Concluído</option>
+        <option value="cancelado" ${q.status==='cancelado'?'selected':''}>Cancelado</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <a href="mailto:${q.email}?subject=Orçamento%20Axion%20Industrial&body=Olá%20${encodeURIComponent(q.name)}," class="btn-save" style="text-decoration:none">✉ Responder por E-mail</a>
+      <button class="btn-reset" onclick="closeModal()">Fechar</button>
+    </div>
+  `);
+}
+
+function updateStatus(id, status) {
+  DATA.updateStatus(id, status);
+  updateNavBadge();
+  toast('✔ Status atualizado!');
+}
+
+function deleteQuote(id, e) {
+  e.stopPropagation();
+  if (confirm('Excluir este pedido de orçamento? Esta ação não pode ser desfeita.')) {
+    DATA.deleteQuote(id);
+    updateNavBadge();
+    renderQuotes();
+    toast('🗑 Pedido excluído.');
+  }
+}
+
+/* ── EDITAR TEXTOS ── */
+function pageTexts() {
+  const c = DATA.getContent();
+  const v = key => c[key] || '';
+
+  $('page-area').innerHTML = `
+    <div class="save-bar">
+      <p>💡 As alterações são salvas e aplicadas automaticamente no site quando visitado no mesmo navegador.</p>
+    </div>
+
+    <div class="editor-tabs">
+      <button class="etab active" onclick="switchEtab('hero',this)">Hero</button>
+      <button class="etab" onclick="switchEtab('about',this)">Sobre</button>
+      <button class="etab" onclick="switchEtab('diff',this)">Diferenciais</button>
+      <button class="etab" onclick="switchEtab('contact',this)">Contato</button>
+    </div>
+
+    <!-- HERO -->
+    <div class="editor-section active" id="etab-hero">
+      <div class="ef-group">
+        <label>Badge do Hero (ex: "Excelência em Metalurgia Industrial")</label>
+        <input type="text" id="c-hero-badge" value="${v('hero_badge')||'Excelência em Metalurgia Industrial'}">
+      </div>
+      <div class="ef-group">
+        <label>Linha 1 do Título</label>
+        <input type="text" id="c-hero-l1" value="${v('hero_l1')||'CONSTRUINDO'}">
+      </div>
+      <div class="ef-row">
+        <div class="ef-group">
+          <label>Linha 2 (cor laranja)</label>
+          <input type="text" id="c-hero-l2" value="${v('hero_l2')||'O FUTURO'}">
+        </div>
+        <div class="ef-group">
+          <label>Linha 3 (cor azul)</label>
+          <input type="text" id="c-hero-l3" value="${v('hero_l3')||'COM PRECISÃO'}">
+        </div>
+      </div>
+      <div class="ef-group">
+        <label>Subtítulo do Hero</label>
+        <textarea id="c-hero-sub">${v('hero_sub')||'Soluções completas em fabricação e montagem de estruturas metálicas, pintura a jato industrial e calderaria — qualidade e segurança em cada projeto.'}</textarea>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:24px">
+        <div class="ef-group" style="flex:1">
+          <label>KPI 1 — Número</label>
+          <input type="text" id="c-kpi1n" value="${v('kpi1_num')||'10+'}">
+        </div>
+        <div class="ef-group" style="flex:2">
+          <label>KPI 1 — Descrição</label>
+          <input type="text" id="c-kpi1l" value="${v('kpi1_label')||'Anos de Mercado'}">
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:24px">
+        <div class="ef-group" style="flex:1">
+          <label>KPI 2 — Número</label>
+          <input type="text" id="c-kpi2n" value="${v('kpi2_num')||'500+'}">
+        </div>
+        <div class="ef-group" style="flex:2">
+          <label>KPI 2 — Descrição</label>
+          <input type="text" id="c-kpi2l" value="${v('kpi2_label')||'Projetos Concluídos'}">
+        </div>
+      </div>
+      <div style="display:flex;gap:16px;margin-bottom:28px">
+        <div class="ef-group" style="flex:1">
+          <label>KPI 3 — Número</label>
+          <input type="text" id="c-kpi3n" value="${v('kpi3_num')||'100%'}">
+        </div>
+        <div class="ef-group" style="flex:2">
+          <label>KPI 3 — Descrição</label>
+          <input type="text" id="c-kpi3l" value="${v('kpi3_label')||'Comprometimento'}">
+        </div>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn-save" onclick="saveHero()">💾 Salvar Hero</button>
+        <button class="btn-reset" onclick="resetSection(['hero_badge','hero_l1','hero_l2','hero_l3','hero_sub','kpi1_num','kpi1_label','kpi2_num','kpi2_label','kpi3_num','kpi3_label'])">↩ Restaurar Padrão</button>
+      </div>
+    </div>
+
+    <!-- SOBRE -->
+    <div class="editor-section" id="etab-about">
+      <div class="ef-group">
+        <label>Título da Seção Sobre</label>
+        <input type="text" id="c-about-title" value="${v('about_title')||'Tradição e Inovação no Setor Industrial'}">
+      </div>
+      <div class="ef-group">
+        <label>Parágrafo 1</label>
+        <textarea id="c-about-p1">${v('about_p1')||'A Axion é uma empresa especializada em soluções metalúrgicas e industriais, comprometida com a excelência em cada projeto. Nossa equipe de profissionais altamente qualificados utiliza equipamentos de última geração para entregar resultados superiores.'}</textarea>
+      </div>
+      <div class="ef-group">
+        <label>Parágrafo 2</label>
+        <textarea id="c-about-p2">${v('about_p2')||'Atuamos em diversos segmentos industriais, oferecendo serviços integrados que vão desde a concepção do projeto até a entrega final — sempre com foco em segurança, qualidade e cumprimento de prazos.'}</textarea>
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn-save" onclick="saveAbout()">💾 Salvar Sobre</button>
+        <button class="btn-reset" onclick="resetSection(['about_title','about_p1','about_p2'])">↩ Restaurar Padrão</button>
+      </div>
+    </div>
+
+    <!-- DIFERENCIAIS -->
+    <div class="editor-section" id="etab-diff">
+      ${[1,2,3,4,5,6].map(i => `
+        <div class="ef-row">
+          <div class="ef-group">
+            <label>Diferencial ${i} — Título</label>
+            <input type="text" id="c-diff${i}t" value="${v('diff'+i+'_title')||['Equipe Especializada','Projetos Sob Medida','Controle de Qualidade','Prazo e Confiabilidade','Atendimento Completo','Segurança em Primeiro'][i-1]}">
+          </div>
+          <div class="ef-group">
+            <label>Diferencial ${i} — Texto</label>
+            <input type="text" id="c-diff${i}p" value="${v('diff'+i+'_text')||['Profissionais com vasta experiência no setor metalúrgico, com treinamentos contínuos e certificações técnicas atualizadas.','Desenvolvemos soluções personalizadas para cada cliente, com análise técnica detalhada e adequação às necessidades específicas.','Rigorosos processos de inspeção em todas as etapas, garantindo conformidade com as normas ABNT e ASME vigentes.','Comprometimento absoluto com os prazos acordados, com planejamento detalhado e comunicação transparente durante todo o processo.','Da concepção à entrega final, acompanhamos cada fase com total suporte técnico e atendimento personalizado e dedicado.','Todos os serviços seguem rigorosas normas de segurança do trabalho, com EPI\'s adequados e procedimentos certificados pelas NR\'s.'][i-1]}">
+          </div>
+        </div>`).join('')}
+      <div style="display:flex;gap:12px;margin-top:8px">
+        <button class="btn-save" onclick="saveDiff()">💾 Salvar Diferenciais</button>
+        <button class="btn-reset" onclick="resetSection(['diff1_title','diff1_text','diff2_title','diff2_text','diff3_title','diff3_text','diff4_title','diff4_text','diff5_title','diff5_text','diff6_title','diff6_text'])">↩ Restaurar Padrão</button>
+      </div>
+    </div>
+
+    <!-- CONTATO -->
+    <div class="editor-section" id="etab-contact">
+      <div class="ef-row">
+        <div class="ef-group">
+          <label>Telefone / WhatsApp</label>
+          <input type="text" id="c-phone" value="${v('contact_phone')||'(12) 99651-3704'}">
+        </div>
+        <div class="ef-group">
+          <label>E-mail</label>
+          <input type="text" id="c-email" value="${v('contact_email')||'adm@axionindustrial.com.br'}">
+        </div>
+      </div>
+      <div class="ef-group">
+        <label>Endereço Completo</label>
+        <input type="text" id="c-address" value="${v('contact_address')||'Rua Itamar Raul Mendes, 30 - São Paulo, Matozinhos - MG, 35720-000'}">
+      </div>
+      <div class="ef-group">
+        <label>Horário de Atendimento</label>
+        <input type="text" id="c-hours" value="${v('contact_hours')||'Seg–Sex: 8h às 18h | Sáb: 8h às 12h'}">
+      </div>
+      <div style="display:flex;gap:12px">
+        <button class="btn-save" onclick="saveContact()">💾 Salvar Contato</button>
+        <button class="btn-reset" onclick="resetSection(['contact_phone','contact_email','contact_address','contact_hours'])">↩ Restaurar Padrão</button>
+      </div>
+    </div>
+  `;
+}
+
+function switchEtab(name, btn) {
+  document.querySelectorAll('.editor-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.etab').forEach(b => b.classList.remove('active'));
+  document.getElementById('etab-'+name).classList.add('active');
+  btn.classList.add('active');
+}
+
+function saveHero() {
+  const fields = {
+    hero_badge: 'c-hero-badge', hero_l1: 'c-hero-l1', hero_l2: 'c-hero-l2', hero_l3: 'c-hero-l3',
+    hero_sub: 'c-hero-sub',
+    kpi1_num: 'c-kpi1n', kpi1_label: 'c-kpi1l',
+    kpi2_num: 'c-kpi2n', kpi2_label: 'c-kpi2l',
+    kpi3_num: 'c-kpi3n', kpi3_label: 'c-kpi3l',
+  };
+  for (const [key, id] of Object.entries(fields)) {
+    DATA.setContent(key, $(id).value);
+  }
+  toast();
+}
+
+function saveAbout() {
+  DATA.setContent('about_title', $('c-about-title').value);
+  DATA.setContent('about_p1', $('c-about-p1').value);
+  DATA.setContent('about_p2', $('c-about-p2').value);
+  toast();
+}
+
+function saveDiff() {
+  for (let i = 1; i <= 6; i++) {
+    DATA.setContent('diff'+i+'_title', $('c-diff'+i+'t').value);
+    DATA.setContent('diff'+i+'_text', $('c-diff'+i+'p').value);
+  }
+  toast();
+}
+
+function saveContact() {
+  DATA.setContent('contact_phone', $('c-phone').value);
+  DATA.setContent('contact_email', $('c-email').value);
+  DATA.setContent('contact_address', $('c-address').value);
+  DATA.setContent('contact_hours', $('c-hours').value);
+  toast();
+}
+
+function resetSection(keys) {
+  if (!confirm('Restaurar os textos desta seção para o padrão original?')) return;
+  const c = DATA.getContent();
+  keys.forEach(k => delete c[k]);
+  localStorage.setItem(K.CONTENT, JSON.stringify(c));
+  pageTexts();
+  toast('↩ Padrão restaurado!');
+}
+
+/* ── EDITAR IMAGENS ── */
+const IMG_DEFS = [
+  { key: 'img_hero_bg',   label: 'Imagem de Fundo — Hero',        desc: 'Fundo da seção principal', type: 'bg',  original: 'img/WhatsApp Image 2026-05-19 at 21.31.29.jpeg' },
+  { key: 'img_service1',  label: 'Serviço 1 — Estruturas',        desc: 'Card do primeiro serviço', type: 'img', original: 'img/WhatsApp Image 2026-05-19 at 21.31.34 (1).jpeg' },
+  { key: 'img_service2',  label: 'Serviço 2 — Pintura',           desc: 'Card do segundo serviço',  type: 'img', original: 'img/WhatsApp Image 2026-05-19 at 21.31.32 (1).jpeg' },
+  { key: 'img_service3',  label: 'Serviço 3 — Calderaria',        desc: 'Card do terceiro serviço', type: 'img', original: 'img/WhatsApp Image 2026-05-19 at 21.31.29.jpeg' },
+  { key: 'img_about',     label: 'Foto — Seção Sobre Nós',        desc: 'Imagem da seção Sobre',    type: 'img', original: 'img/WhatsApp Image 2026-05-19 at 21.31.31.jpeg' },
+];
+
+function pageImages() {
+  const imgs = DATA.getImages();
+
+  $('page-area').innerHTML = `
+    <div class="save-bar">
+      <p>📸 Formatos aceitos: JPG, PNG, WEBP. Tamanho recomendado: até 2MB por imagem.</p>
+    </div>
+    <div class="img-grid" id="img-grid">
+      ${IMG_DEFS.map(def => {
+        const custom = imgs[def.key];
+        const preview = custom
+          ? (def.type === 'bg' ? `<div class="img-bg" style="background-image:url(${custom})"></div>` : `<img src="${custom}" alt="">`)
+          : (def.type === 'bg' ? `<div class="img-bg" style="background-image:url('${def.original}')"></div>` : `<img src="${def.original}" alt="">`);
+        return `
+          <div class="img-card">
+            <div class="img-preview">
+              ${preview}
+              ${custom ? '<span class="img-badge">✏ Personalizada</span>' : '<span class="img-badge">Original</span>'}
+            </div>
+            <div class="img-card-body">
+              <h4>${def.label}</h4>
+              <p>${def.desc}</p>
+              <div class="img-actions">
+                <label class="btn-upload">
+                  📁 Trocar Imagem
+                  <input type="file" accept="image/*" onchange="uploadImage('${def.key}',this)">
+                </label>
+                <button class="btn-revert" onclick="revertImage('${def.key}')" ${!custom?'disabled':''}>↩ Original</button>
+              </div>
+            </div>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function uploadImage(key, input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) {
+    alert('Imagem muito grande! Use arquivos até 3MB para não sobrecarregar o armazenamento.');
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = e => {
+    DATA.setImage(key, e.target.result);
+    pageImages();
+    toast('🖼 Imagem atualizada!');
+  };
+  reader.readAsDataURL(file);
+}
+
+function revertImage(key) {
+  if (!confirm('Restaurar a imagem original?')) return;
+  DATA.removeImage(key);
+  pageImages();
+  toast('↩ Imagem restaurada!');
+}
+
+/* ── CONFIGURAÇÕES ── */
+function pageSettings() {
+  $('page-area').innerHTML = `
+    <div style="max-width:560px">
+
+      <div class="settings-section">
+        <h3>🔑 Alterar Senha de Acesso</h3>
+        <div class="ef-group">
+          <label>Senha Atual</label>
+          <input type="password" id="pass-old" placeholder="••••••••">
+        </div>
+        <div class="ef-group">
+          <label>Nova Senha</label>
+          <input type="password" id="pass-new" placeholder="••••••••">
+          <div class="pass-hint">Mínimo de 8 caracteres. Use letras, números e símbolos.</div>
+        </div>
+        <div class="ef-group">
+          <label>Confirmar Nova Senha</label>
+          <input type="password" id="pass-conf" placeholder="••••••••">
+        </div>
+        <div id="pass-msg" style="font-size:13px;margin-bottom:12px"></div>
+        <button class="btn-save" onclick="changePassword()">🔑 Alterar Senha</button>
+      </div>
+
+      <div class="settings-section">
+        <h3>📦 Dados e Backup</h3>
+        <div class="actions-row">
+          <button class="btn-secondary" onclick="DATA.exportAll()">⬇ Exportar Backup (JSON)</button>
+          <button class="btn-secondary" onclick="importData()">⬆ Importar Backup</button>
+        </div>
+        <input type="file" id="import-file" accept=".json" onchange="processImport(this)" style="display:none">
+      </div>
+
+      <div class="settings-section">
+        <h3>⚠️ Zona de Perigo</h3>
+        <div class="actions-row">
+          <button class="btn-danger" onclick="clearQuotes()">🗑 Limpar Todos os Orçamentos</button>
+          <button class="btn-danger" onclick="clearAllData()">💥 Limpar Tudo (Reset Total)</button>
+        </div>
+      </div>
+
+      <div class="settings-section">
+        <h3>ℹ️ Informações</h3>
+        <div style="font-size:13px;color:var(--gray);line-height:1.8">
+          <p>• Os dados são armazenados localmente neste navegador (localStorage).</p>
+          <p>• Para acessar de outro computador, use a função de backup/importar.</p>
+          <p>• Sessão expira automaticamente após <strong style="color:var(--white)">2 horas</strong> de inatividade.</p>
+          <p>• Renomeie este arquivo para dificultar o acesso não autorizado.</p>
+          <p style="margin-top:12px;padding:10px;background:rgba(58,175,228,.06);border:1px solid rgba(58,175,228,.15);border-radius:8px">
+            💡 <strong>Dica de segurança (Locaweb):</strong> Crie um arquivo <code style="color:var(--sky)">.htaccess</code> na pasta raiz e adicione as regras de proteção por senha do Apache para uma camada extra de segurança.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+async function changePassword() {
+  const oldPass = $('pass-old').value;
+  const newPass = $('pass-new').value;
+  const confPass = $('pass-conf').value;
+  const msg = $('pass-msg');
+
+  if (!oldPass || !newPass || !confPass) {
+    msg.style.color = '#fca5a5'; msg.textContent = 'Preencha todos os campos.'; return;
+  }
+  if (newPass.length < 8) {
+    msg.style.color = '#fca5a5'; msg.textContent = 'Nova senha deve ter pelo menos 8 caracteres.'; return;
+  }
+  if (newPass !== confPass) {
+    msg.style.color = '#fca5a5'; msg.textContent = 'As senhas não coincidem.'; return;
+  }
+
+  const oldHash = await sha256(oldPass);
+  if (oldHash !== localStorage.getItem(K.PASS)) {
+    msg.style.color = '#fca5a5'; msg.textContent = 'Senha atual incorreta.'; return;
+  }
+
+  localStorage.setItem(K.PASS, await sha256(newPass));
+  msg.style.color = 'var(--green)'; msg.textContent = '✔ Senha alterada com sucesso!';
+  $('pass-old').value = ''; $('pass-new').value = ''; $('pass-conf').value = '';
+}
+
+function importData() { $('import-file').click(); }
+
+function processImport(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (data.quotes) localStorage.setItem(K.QUOTES, JSON.stringify(data.quotes));
+      if (data.content) localStorage.setItem(K.CONTENT, JSON.stringify(data.content));
+      updateNavBadge();
+      toast('⬆ Backup importado com sucesso!');
+    } catch {
+      alert('Arquivo inválido. Use apenas backups exportados por este painel.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+function clearQuotes() {
+  if (confirm('Apagar TODOS os pedidos de orçamento? Esta ação não pode ser desfeita.')) {
+    DATA.clearQuotes();
+    updateNavBadge();
+    toast('🗑 Orçamentos apagados.');
+    pageSettings();
+  }
+}
+
+function clearAllData() {
+  if (confirm('⚠️ ATENÇÃO: Isso apaga TODOS os dados (orçamentos, textos personalizados e imagens). Continuar?')) {
+    if (confirm('Tem certeza? Esta ação é irreversível.')) {
+      DATA.clearAll();
+      updateNavBadge();
+      toast('💥 Todos os dados foram apagados.');
+      pageSettings();
+    }
+  }
+}
+
+// ────────────────────────────────────────────────────────────────
+// ROTEAMENTO
+// ────────────────────────────────────────────────────────────────
+const PAGES = {
+  dashboard: { title: 'Dashboard',      fn: pageDashboard },
+  quotes:    { title: 'Pedidos de Orçamento', fn: pageQuotes },
+  texts:     { title: 'Editar Textos',   fn: pageTexts },
+  images:    { title: 'Editar Imagens',  fn: pageImages },
+  settings:  { title: 'Configurações',   fn: pageSettings },
+};
+
+function navigate(page) {
+  const p = PAGES[page];
+  if (!p) return;
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.page === page));
+  $('page-title').textContent = p.title;
+  p.fn();
+  window.scrollTo(0, 0);
+}
+
+document.querySelectorAll('.nav-item').forEach(btn =>
+  btn.addEventListener('click', () => navigate(btn.dataset.page))
+);
+
+// ────────────────────────────────────────────────────────────────
+// RELÓGIO
+// ────────────────────────────────────────────────────────────────
+function updateClock() {
+  $('topbar-time').textContent = new Date().toLocaleString('pt-BR', {
+    day:'2-digit', month:'2-digit', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  });
+}
+setInterval(updateClock, 1000);
+updateClock();
+
+// ────────────────────────────────────────────────────────────────
+// AUTO-LOGOUT POR INATIVIDADE
+// ────────────────────────────────────────────────────────────────
+let activityTimer;
+function resetActivity() {
+  clearTimeout(activityTimer);
+  activityTimer = setTimeout(() => {
+    alert('Sua sessão expirou por inatividade. Faça login novamente.');
+    AUTH.logout();
+  }, AUTH.SESSION_MS);
+}
+['click','keydown','mousemove','touchstart'].forEach(e =>
+  document.addEventListener(e, resetActivity, { passive: true })
+);
+
+// ────────────────────────────────────────────────────────────────
+// INICIALIZAÇÃO
+// ────────────────────────────────────────────────────────────────
+document.getElementById('logout-btn').addEventListener('click', () => {
+  if (confirm('Deseja sair do painel?')) AUTH.logout();
+});
+
+document.getElementById('login-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = $('login-btn');
+  const pass = $('login-pass').value;
+  const errEl = $('login-error');
+  const attEl = $('login-attempts');
+
+  btn.disabled = true;
+  btn.textContent = 'Verificando...';
+  errEl.style.display = 'none';
+  attEl.style.display = 'none';
+
+  // Pequeno delay para mitigar timing attacks
+  await new Promise(r => setTimeout(r, 400));
+
+  const result = await AUTH.login(pass);
+
+  if (result.ok) {
+    $('login-screen').style.display = 'none';
+    $('app').style.display = 'flex';
+    updateNavBadge();
+    navigate('dashboard');
+    resetActivity();
+  } else if (result.locked) {
+    errEl.className = 'login-lock';
+    errEl.innerHTML = `🔒 Painel bloqueado por ${result.mins} minuto(s) devido a tentativas incorretas.`;
+    errEl.style.display = 'block';
+    btn.disabled = false;
+    btn.textContent = 'Entrar no Painel';
+  } else {
+    errEl.className = 'login-error';
+    errEl.textContent = 'Senha incorreta. Verifique e tente novamente.';
+    errEl.style.display = 'block';
+    if (result.remaining <= 2) {
+      attEl.textContent = `⚠️ Atenção: ${result.remaining} tentativa(s) restante(s) antes do bloqueio.`;
+      attEl.style.display = 'block';
+    }
+    $('login-pass').value = '';
+    btn.disabled = false;
+    btn.textContent = 'Entrar no Painel';
+  }
+});
+
+// Verificar bloqueio ao carregar
+(async () => {
+  await AUTH.init();
+
+  const locked = AUTH.isLocked();
+  if (locked) {
+    const errEl = $('login-error');
+    errEl.className = 'login-lock';
+    errEl.innerHTML = `🔒 Painel bloqueado por ${locked} minuto(s).`;
+    errEl.style.display = 'block';
+    $('login-btn').disabled = true;
+  }
+
+  // Já logado? Restaurar sessão
+  if (AUTH.isValid()) {
+    $('login-screen').style.display = 'none';
+    $('app').style.display = 'flex';
+    updateNavBadge();
+    navigate('dashboard');
+    resetActivity();
+  }
+})();
+</script>
+</body>
+</html>
