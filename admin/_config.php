@@ -23,11 +23,15 @@ function ensureSession(): void {
     }
 }
 
-// ── Credenciais MySQL — Locaweb DBaaS ───────────────────────────
-define('DB_HOST', 'axionindustria.mysql.dbaas.com.br');
-define('DB_NAME', 'axionindustria');
-define('DB_USER', 'axionindustria');
-define('DB_PASS', 'x78LHb688!');
+// ── Credenciais e segredos — OWASP A02: nunca hardcoded no código ─
+// Carregados de admin/_secrets.php (fora do Git, ver .gitignore).
+// Veja admin/_secrets.example.php para o modelo esperado.
+$secretsFile = __DIR__ . '/_secrets.php';
+if (!is_file($secretsFile)) {
+    http_response_code(500);
+    exit('Configuração ausente: crie admin/_secrets.php a partir de admin/_secrets.example.php.');
+}
+require_once $secretsFile;
 // ────────────────────────────────────────────────────────────────
 
 define('UPLOAD_DIR',    dirname(__DIR__) . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR);
@@ -77,5 +81,5 @@ function redirect(string $url): never {
 /** Hasha IP para logs sem guardar dado pessoal (LGPD) */
 function ipHash(): string {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
-    return hash('sha256', $ip . 'axion_2025_salt');
+    return hash('sha256', $ip . IP_HASH_SALT);
 }

@@ -1,0 +1,11 @@
+# Segredos — NUNCA versionar (ver admin/_secrets.example.php)
+admin/_secrets.php
+
+# Conteúdo enviado por usuários (não é código-fonte)
+/uploads/*
+!/uploads/.htaccess
+
+# Logs e arquivos de sistema
+*.log
+.DS_Store
+Thumbs.db

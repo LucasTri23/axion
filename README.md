@@ -181,7 +181,28 @@ admin/                  → painel administrativo (login obrigatório)
   _auth.php             → guarda de autenticação
   _csrf.php             → proteção CSRF
   _layout.php           → layout/menu compartilhado do painel
+  _secrets.php          → credenciais reais (NÃO versionado — ver .gitignore)
+  _secrets.example.php  → modelo de credenciais (versionado, sem valores reais)
 uploads/                → imagens enviadas pelo admin
 setup.php               → script de criação das tabelas do banco (uso único, deve ser removido/bloqueado após uso)
 .htaccess                → regras de segurança (HTTPS forçado, headers, bloqueio de arquivos sensíveis)
+.gitignore               → exclui admin/_secrets.php e conteúdo de uploads/ do controle de versão
 ```
+
+## 10. Incidente de segurança — credenciais expostas no GitHub (29/07/2026)
+
+Em 29/07/2026 o GitGuardian detectou a senha do MySQL exposta publicamente no repositório `LucasTri23/axion` no GitHub, no commit `575fa5e` (a senha estava hardcoded em `admin/_config.php`). Como esse serviço monitora pushes **públicos** no GitHub em tempo real, o alerta confirma que o repositório estava público no momento do push.
+
+**O que foi corrigido no código:**
+
+- Todas as credenciais (senha do MySQL, salt do hash de IP, token do `setup.php`) foram removidas do código-fonte e movidas para `admin/_secrets.php`, um arquivo que fica **fora do controle de versão** (adicionado ao `.gitignore` criado nesta correção).
+- `admin/_secrets.example.php` foi criado como modelo versionado, sem valores reais, para quem for configurar o projeto do zero.
+- O salt do hash de IP e o token do `setup.php` foram trocados para valores novos, já que os antigos (`axion_2025_salt` e `axion_setup_2025_xK9mP`) também estavam no mesmo commit vazado.
+- `setup.php` agora usa `hash_equals()` para comparar o token (comparação resistente a timing attack).
+
+**Ações que só a Axion pode fazer (fora do código) — urgente:**
+
+1. **Trocar a senha do banco MySQL no painel da Locaweb agora**, mesmo com a correção acima — o código só evita que a senha volte a vazar de novo; a senha antiga já é pública e deve ser tratada como comprometida até ser trocada no servidor.
+2. Depois de trocar, atualizar o valor de `DB_PASS` em `admin/_secrets.php` (local) **e** no arquivo equivalente no servidor de produção (upload manual via FTP/painel da Locaweb — esse arquivo nunca deve ir por `git push`).
+3. Confirmar se o repositório `LucasTri23/axion` deveria realmente ser público; se não, torná-lo privado no GitHub.
+4. Opcionalmente, higienizar o histórico do Git para remover o segredo dos commits antigos (ex.: `git filter-repo` ou BFG Repo-Cleaner) — isso exige reescrever o histórico e um `push --force`, então deve ser feito com cuidado e de preferência coordenado (ninguém mais pode ter um clone desatualizado do repositório na hora). Rotacionar a senha (item 1) já neutraliza o risco prático mesmo sem esse passo.

@@ -260,6 +260,10 @@ sio.observe(document.getElementById('stats'));
 })();
 
 // ── FORMULÁRIO DE ORÇAMENTO — envia para API PHP ──────────────────
+// Marca o instante em que o formulário ficou disponível — usado no
+// servidor para descartar envios automatizados enviados rápido demais.
+document.getElementById('f-ts').value = Date.now();
+
 document.getElementById('cform').addEventListener('submit', async e => {
   e.preventDefault();
 
@@ -282,6 +286,8 @@ document.getElementById('cform').addEventListener('submit', async e => {
   body.append('phone',       document.getElementById('f-phone').value.trim());
   body.append('service',     document.getElementById('f-service').value);
   body.append('description', document.getElementById('f-desc').value.trim());
+  body.append('website',     document.getElementById('f-website').value);
+  body.append('form_ts',     document.getElementById('f-ts').value);
 
   const sendIcon = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none"
     stroke="currentColor" stroke-width="2">

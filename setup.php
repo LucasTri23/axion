@@ -3,21 +3,19 @@
  * ╔══════════════════════════════════════════════════════════╗
  * ║  AXION — Setup do Banco de Dados                         ║
  * ║                                                          ║
- * ║  1. Preencha as credenciais em admin/_config.php         ║
+ * ║  1. Preencha as credenciais em admin/_secrets.php         ║
  * ║  2. Acesse este arquivo UMA VEZ no browser               ║
  * ║  3. APAGUE ou proteja este arquivo no .htaccess          ║
  * ╚══════════════════════════════════════════════════════════╝
  */
 
-// Proteção mínima: acesso apenas via GET com token (troque o token abaixo)
-define('SETUP_TOKEN', 'axion_setup_2025_xK9mP');
+require_once __DIR__ . '/admin/_config.php';
 
-if (($_GET['token'] ?? '') !== SETUP_TOKEN) {
+// Proteção mínima: acesso apenas via GET com token (SETUP_TOKEN vem de admin/_secrets.php)
+if (!hash_equals(SETUP_TOKEN, $_GET['token'] ?? '')) {
     http_response_code(403);
     die('<h2>Acesso negado.</h2><p>Passe o token correto via ?token=SEU_TOKEN</p>');
 }
-
-require_once __DIR__ . '/admin/_config.php';
 
 $errors  = [];
 $success = [];
@@ -155,7 +153,7 @@ a{color:#3AAFE4}
   <div class="box err">
     <strong>❌ Erros encontrados:</strong><br>
     <?= implode('<br>', $errors) ?>
-    <br><br>Verifique as credenciais em <code>admin/_config.php</code> e tente novamente.
+    <br><br>Verifique as credenciais em <code>admin/_secrets.php</code> e tente novamente.
   </div>
 <?php else: ?>
   <div class="box ok">

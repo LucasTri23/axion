@@ -14,7 +14,19 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit(json_encode(['ok' => false, 'msg' => 'Método não permitido.']));
 }
 
-// ── Rate limit simples por IP (5 envios por hora) ────────────────
+// ── Anti-bot: honeypot + tempo mínimo de preenchimento — OWASP A04 ─
+// Campo invisível: só bots costumam preencher. Falha "silenciosa"
+// (responde sucesso mas não grava nada) para não ensinar o bot a
+// evitar a checagem.
+$honeypot = trim($_POST['website'] ?? '');
+$formTs   = (int)($_POST['form_ts'] ?? 0);
+$elapsed  = $formTs > 0 ? (microtime(true) * 1000 - $formTs) : 0;
+if ($honeypot !== '' || $formTs <= 0 || $elapsed < 1200) {
+    echo json_encode(['ok' => true, 'msg' => 'Mensagem enviada com sucesso!']);
+    exit;
+}
+
+// ── Rate limit por IP (5 envios por hora) ────────────────────────
 $ip   = ipHash();
 $cut  = date('Y-m-d H:i:s', time() - 3600);
 $cnt  = db()->prepare("SELECT COUNT(*) FROM quotes WHERE ip_hash = ? AND created_at > ?");
@@ -35,6 +47,18 @@ if (strlen($name) < 2 || strlen($name) > 255) {
 if (!filter_var($email, FILTER_VALIDATE_EMAIL) || strlen($email) > 255) {
     http_response_code(422);
     exit(json_encode(['ok' => false, 'msg' => 'E-mail inválido.']));
+}
+
+// ── Rate limit por e-mail (5 envios por 24h) — complementa o limite
+//    por IP, protegendo contra spam que rotaciona IP mas repete o
+//    mesmo e-mail alvo, e evita bloquear injustamente visitantes que
+//    compartilham IP (ex.: rede móvel/CGNAT) ────────────────────────
+$cutEmail = date('Y-m-d H:i:s', time() - 86400);
+$cntEmail = db()->prepare("SELECT COUNT(*) FROM quotes WHERE email = ? AND created_at > ?");
+$cntEmail->execute([$email, $cutEmail]);
+if ((int)$cntEmail->fetchColumn() >= 5) {
+    http_response_code(429);
+    exit(json_encode(['ok' => false, 'msg' => 'Muitas solicitações com este e-mail. Tente novamente mais tarde.']));
 }
 
 $company = substr(strip_tags(trim($_POST['company']     ?? '')), 0, 255);
