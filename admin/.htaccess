@@ -1,0 +1,18 @@
+# ── Pasta admin — segurança extra ──────────────────────────────
+Options -Indexes
+
+# Bloquear acesso direto a arquivos que começam com _
+<FilesMatch "^_">
+    Require all denied
+</FilesMatch>
+
+# Apenas arquivos .php permitidos (sem .html, .txt, etc.)
+<FilesMatch "\.(html|txt|json|log|sql)$">
+    Require all denied
+</FilesMatch>
+
+# Headers extras para o painel
+<IfModule mod_headers.c>
+    Header always set Cache-Control "no-store, no-cache, must-revalidate, private"
+    Header always set Pragma "no-cache"
+</IfModule>

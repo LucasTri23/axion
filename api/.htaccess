@@ -1,0 +1,5 @@
+# API — só permite GET e POST, sem listagem
+Options -Indexes
+<FilesMatch "^_">
+    Require all denied
+</FilesMatch>

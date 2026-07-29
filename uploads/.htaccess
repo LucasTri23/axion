@@ -1,0 +1,8 @@
+# ── Pasta de uploads — NUNCA executar PHP aqui (OWASP A08) ──
+Options -Indexes -ExecCGI
+AddHandler cgi-script .php .php3 .php4 .php5 .phtml .pl .py .jsp .asp .sh
+<FilesMatch "\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|sh|cgi)$">
+    Require all denied
+</FilesMatch>
+RemoveHandler .php .php5 .phtml
+RemoveType .php .php5 .phtml
