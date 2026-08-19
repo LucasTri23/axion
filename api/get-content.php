@@ -6,7 +6,8 @@
 require_once dirname(__DIR__) . '/admin/_config.php';
 
 header('Content-Type: application/json; charset=utf-8');
-header('Cache-Control: public, max-age=300'); // cache 5 min (CDN / browser)
+header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
+header('Pragma: no-cache');
 header('X-Content-Type-Options: nosniff');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'GET') {

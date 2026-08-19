@@ -8,6 +8,7 @@ require_once __DIR__ . '/_layout.php';
 $db      = db();
 $saved   = false;
 $error   = '';
+$activeSection = 'hero';
 
 // Carrega todo o conteúdo atual do BD
 function getContent(): array {
@@ -33,6 +34,7 @@ function deleteContent(string $key): void {
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     csrfVerify();
     $section = $_POST['section'] ?? '';
+    $activeSection = in_array($section, ['hero','services','about','diff','contact'], true) ? $section : 'hero';
     $reset   = isset($_POST['reset']);
 
     $sections = [
@@ -42,7 +44,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'contact' => ['contact_phone','contact_email','contact_address','contact_hours'],
     ];
 
-    if (array_key_exists($section, $sections)) {
+    if ($section === 'services') {
+        $titles = $_POST['service_title'] ?? [];
+        $descriptions = $_POST['service_description'] ?? [];
+        $images = $_POST['service_image'] ?? [];
+        $items = $_POST['service_items'] ?? [];
+        $services = [];
+        foreach ($titles as $i => $title) {
+            $title = substr(trim(strip_tags($title)), 0, 120);
+            if ($title === '') continue;
+            $image = trim($images[$i] ?? '');
+            if ($image !== '' && !preg_match('~^(?:/|https?://)~i', $image)) $image = '';
+            $bullets = [];
+            foreach (preg_split('/\r?\n/', $items[$i] ?? '') as $item) {
+                $item = substr(trim(strip_tags($item)), 0, 180);
+                if ($item !== '') $bullets[] = $item;
+            }
+            $services[] = [
+                'title' => $title,
+                'description' => substr(trim(strip_tags($descriptions[$i] ?? '')), 0, 600),
+                'image' => substr($image, 0, 500),
+                'items' => array_slice($bullets, 0, 10),
+            ];
+        }
+        if ($reset) deleteContent('services_json');
+        elseif ($services) setContent('services_json', json_encode($services, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+        $saved = true;
+    } elseif (array_key_exists($section, $sections)) {
         if ($reset) {
             foreach ($sections[$section] as $key) deleteContent($key);
         } else {
@@ -75,11 +103,56 @@ layout_start('Editar Textos', 'content');
 
 <!-- Abas -->
 <div style="display:flex;gap:4px;background:rgba(255,255,255,.03);border-radius:10px;padding:4px;margin-bottom:22px" id="tabs">
-  <button class="btn btn-primary btn-sm tab-btn" data-tab="hero">Hero</button>
-  <button class="btn btn-ghost btn-sm tab-btn" data-tab="about">Sobre</button>
-  <button class="btn btn-ghost btn-sm tab-btn" data-tab="diff">Diferenciais</button>
-  <button class="btn btn-ghost btn-sm tab-btn" data-tab="contact">Contato</button>
+  <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="hero">Hero</button>
+  <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="services">Serviços</button>
+  <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="about">Sobre</button>
+  <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="diff">Diferenciais</button>
+  <button type="button" class="btn btn-ghost btn-sm tab-btn" data-tab="contact">Contato</button>
 </div>
+
+<!-- SERVICOS -->
+<?php
+$serviceDefaults = [
+  ['title'=>'Fabricação e Montagem de Estruturas','description'=>'Projetamos e fabricamos estruturas metálicas sob medida — de galpões industriais a suportes especializados — com rigoroso controle de qualidade.','image'=>'/img/WhatsApp%20Image%202026-05-19%20at%2021.31.34%20%281%29.jpeg','items'=>['Estruturas metálicas industriais','Galpões e coberturas metálicas','Mezaninos e plataformas','Escadas, corrimãos e passarelas']],
+  ['title'=>'Pintura a Jato','description'=>'Jateamento abrasivo e pintura industrial com produtos de alta performance, garantindo proteção anticorrosiva e durabilidade máxima para suas estruturas.','image'=>'/img/WhatsApp%20Image%202026-05-19%20at%2021.31.32%20%281%29.jpeg','items'=>['Jateamento abrasivo','Pintura anticorrosiva','Tratamento e preparo de superfícies','Pintura epóxi e poliuretano']],
+  ['title'=>'Calderaria em Geral','description'=>'Executamos serviços completos de calderaria em geral, desenvolvendo soluções sob medida para atender às necessidades específicas de cada cliente e projeto.','image'=>'/img/WhatsApp%20Image%202026-05-19%20at%2021.31.29.jpeg','items'=>['Silos, tanques e reservatórios','Dutos e tubulações industriais','Vasos de pressão','Peças e componentes sob medida']],
+];
+$services = json_decode($c['services_json'] ?? '', true);
+if (!is_array($services) || !$services) $services = $serviceDefaults;
+?>
+<div class="card tab-panel" id="tab-services" style="display:none">
+  <div class="card-title">Serviços do site</div>
+  <form method="POST">
+    <?= csrfField() ?>
+    <input type="hidden" name="section" value="services">
+    <div id="service-admin-rows">
+      <?php foreach ($services as $service): ?>
+      <div class="service-admin-row" style="border:1px solid rgba(255,255,255,.1);padding:16px;border-radius:9px;margin-bottom:14px">
+        <div class="fg"><label>Nome do serviço</label><input name="service_title[]" value="<?= e($service['title'] ?? '') ?>" required maxlength="120"></div>
+        <div class="fg"><label>Descrição</label><textarea name="service_description[]" maxlength="600"><?= e($service['description'] ?? '') ?></textarea></div>
+        <div class="fg"><label>Imagem (endereço da imagem)</label><input name="service_image[]" value="<?= e($service['image'] ?? '') ?>" maxlength="500" placeholder="/img/foto.jpg ou https://..."></div>
+        <div class="fg"><label>Tópicos (um por linha)</label><textarea name="service_items[]"><?= e(implode("\n", $service['items'] ?? [])) ?></textarea></div>
+        <button type="button" class="btn btn-danger btn-sm remove-service">Remover serviço</button>
+      </div>
+      <?php endforeach ?>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button type="button" id="add-service" class="btn btn-secondary">Adicionar novo serviço</button>
+      <button type="submit" class="btn btn-primary">Salvar serviços</button>
+      <button type="submit" name="reset" value="1" class="btn btn-ghost" onclick="return confirm('Restaurar os três serviços originais?')">Restaurar padrão</button>
+    </div>
+  </form>
+</div>
+
+<template id="service-admin-template">
+  <div class="service-admin-row" style="border:1px solid rgba(255,255,255,.1);padding:16px;border-radius:9px;margin-bottom:14px">
+    <div class="fg"><label>Nome do serviço</label><input name="service_title[]" required maxlength="120"></div>
+    <div class="fg"><label>Descrição</label><textarea name="service_description[]" maxlength="600"></textarea></div>
+    <div class="fg"><label>Imagem (endereço da imagem)</label><input name="service_image[]" maxlength="500" placeholder="/img/foto.jpg ou https://..."></div>
+    <div class="fg"><label>Tópicos (um por linha)</label><textarea name="service_items[]"></textarea></div>
+    <button type="button" class="btn btn-danger btn-sm remove-service">Remover serviço</button>
+  </div>
+</template>
 
 <!-- HERO -->
 <div class="card tab-panel" id="tab-hero">
@@ -212,16 +285,36 @@ layout_start('Editar Textos', 'content');
 </div>
 
 <script>
-document.querySelectorAll('.tab-btn').forEach(btn => {
-  btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab-btn').forEach(b => {
-      b.className = b === btn ? 'btn btn-primary btn-sm tab-btn' : 'btn btn-ghost btn-sm tab-btn';
-    });
-    document.querySelectorAll('.tab-panel').forEach(p => {
-      p.style.display = p.id === 'tab-' + btn.dataset.tab ? '' : 'none';
-    });
+(function () {
+  function openTab(name) {
+    var buttons = document.querySelectorAll('.tab-btn');
+    var panels = document.querySelectorAll('.tab-panel');
+    for (var i = 0; i < buttons.length; i++) {
+      var active = buttons[i].getAttribute('data-tab') === name;
+      buttons[i].className = active ? 'btn btn-primary btn-sm tab-btn' : 'btn btn-ghost btn-sm tab-btn';
+    }
+    for (var j = 0; j < panels.length; j++) {
+      panels[j].style.display = panels[j].id === 'tab-' + name ? '' : 'none';
+    }
+  }
+  var buttons = document.querySelectorAll('.tab-btn');
+  for (var i = 0; i < buttons.length; i++) {
+    buttons[i].onclick = function () { openTab(this.getAttribute('data-tab')); };
+  }
+  openTab(<?= json_encode($activeSection) ?>);
+
+  var addService = document.getElementById('add-service');
+  if (addService) addService.onclick = function () {
+    var template = document.getElementById('service-admin-template');
+    document.getElementById('service-admin-rows').appendChild(template.content.cloneNode(true));
+  };
+  document.addEventListener('click', function (event) {
+    var button = event.target.closest ? event.target.closest('.remove-service') : null;
+    if (!button) return;
+    var row = button.closest('.service-admin-row');
+    if (row && row.parentNode) row.parentNode.removeChild(row);
   });
-});
+}());
 </script>
 
 <?php layout_end(); ?>

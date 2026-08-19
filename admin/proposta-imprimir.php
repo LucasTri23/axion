@@ -63,6 +63,7 @@ body{font-family:'Calibri','Segoe UI',Arial,sans-serif;color:#1a1a1a;background:
 .toolbar a,.toolbar button{font-family:'Segoe UI',Arial,sans-serif;font-size:13.5px;font-weight:600;padding:9px 18px;border-radius:8px;border:none;cursor:pointer;text-decoration:none}
 .toolbar .back{background:rgba(255,255,255,.08);color:#fff}
 .toolbar .pdf{background:linear-gradient(135deg,#E8751A,#FF8F2C);color:#fff;margin-left:auto}
+.toolbar .email{background:#2563eb;color:#fff}
 .sheet{max-width:850px;margin:24px auto;background:#fff;padding:38px 46px;box-shadow:0 4px 24px rgba(0,0,0,.25)}
 .hdr{display:flex;border:1px solid #444;margin-bottom:22px}
 .hdr .logo-cell{width:150px;display:flex;align-items:center;justify-content:center;padding:8px;border-right:1px solid #444}
@@ -145,8 +146,13 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 <div class="toolbar">
   <a href="/admin/propostas.php" class="back">← Voltar</a>
   <span style="font-size:13px;color:#B8C4D0">Proposta — <?= e($p['cliente_nome']) ?></span>
-  <button class="pdf" onclick="window.print()">🖨️ Baixar PDF</button>
+  <a class="email" href="mailto:?subject=<?= rawurlencode('Proposta Axion - ' . ($p['numero'] ?: $p['cliente_nome'])) ?>&body=<?= rawurlencode("Olá,\n\nSegue a proposta da Axion Industrial. Gere o PDF, anexe-o a esta mensagem e envie.\n\nAtenciosamente,\nAxion Industrial") ?>">Enviar por e-mail</a>
+  <button class="pdf" onclick="window.print()">Gerar / salvar PDF</button>
 </div>
+
+<?php if (isset($_GET['print'])): ?>
+<script>window.addEventListener('load', function () { window.print(); });</script>
+<?php endif ?>
 
 <div class="sheet">
 

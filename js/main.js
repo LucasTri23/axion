@@ -637,9 +637,67 @@ function initContentLoader() {
         if (el) el.src = images[key];
       }
     }
+
+    if (texts.services_json) {
+      try {
+        const services = JSON.parse(texts.services_json);
+        const grid = document.querySelector('#servicos .srv-grid');
+        if (grid && Array.isArray(services) && services.length) {
+          grid.innerHTML = '';
+          services.forEach((service, index) => {
+            const card = document.createElement('div');
+            card.className = 'sc-card in';
+            const imageWrap = document.createElement('div');
+            imageWrap.className = 'sc-img scan-wrap';
+            if (service.image) {
+              const image = document.createElement('img');
+              image.src = service.image;
+              image.alt = service.title || '';
+              image.loading = 'lazy';
+              imageWrap.appendChild(image);
+            }
+            const overlay = document.createElement('div');
+            overlay.className = 'sc-img-ov';
+            imageWrap.appendChild(overlay);
+            const body = document.createElement('div');
+            body.className = 'sc-body';
+            const number = document.createElement('div');
+            number.className = 'sc-icon';
+            number.textContent = String(index + 1).padStart(2, '0');
+            const title = document.createElement('h3');
+            title.textContent = service.title || '';
+            const description = document.createElement('p');
+            description.textContent = service.description || '';
+            const list = document.createElement('ul');
+            list.className = 'sc-list';
+            (service.items || []).forEach(item => {
+              const li = document.createElement('li');
+              li.textContent = item;
+              list.appendChild(li);
+            });
+            body.append(number, title, description, list);
+            card.append(imageWrap, body);
+            grid.appendChild(card);
+          });
+
+          const serviceSelect = document.getElementById('f-service');
+          if (serviceSelect) {
+            const selected = serviceSelect.value;
+            serviceSelect.innerHTML = '<option value="">Selecione um serviço...</option>';
+            services.forEach(service => {
+              const option = document.createElement('option');
+              option.value = service.title || '';
+              option.textContent = service.title || '';
+              serviceSelect.appendChild(option);
+            });
+            serviceSelect.value = selected;
+          }
+        }
+      } catch (_) {}
+    }
   }
 
-  fetch('/api/get-content.php', { cache: 'force-cache' })
+  fetch('/api/get-content.php', { cache: 'no-store' })
     .then(r => r.ok ? r.json() : null)
     .then(d => { if (d && d.ok) applyContent(d.texts || {}, d.images || {}); })
     .catch(() => {});

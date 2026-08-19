@@ -97,6 +97,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($action === 'save') {
         $id   = (int)($_POST['id'] ?? 0);
+        $saveMode = $_POST['save_mode'] ?? 'overwrite';
+        if (!in_array($saveMode, ['overwrite', 'copy', 'print'], true)) $saveMode = 'overwrite';
+        if ($saveMode === 'copy') $id = 0;
         $tipo = ($_POST['tipo'] ?? '') === 'pequena' ? 'pequena' : 'grande';
 
         $numero   = substr(trim($_POST['numero'] ?? ''), 0, 50);
@@ -218,6 +221,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)$db->lastInsertId();
         }
 
+        if ($saveMode === 'print') {
+            redirect('/admin/proposta-imprimir.php?id=' . $id . '&print=1');
+        }
         redirect('/admin/propostas.php?id=' . $id . '&saved=1');
     }
 }
@@ -256,7 +262,24 @@ layout_start('Propostas Comerciais', 'propostas');
 <?php endif ?>
 
 <?php if ($modo === 'lista'):
-    $lista = $db->query("SELECT id, tipo, numero, cliente_nome, objeto, data_proposta, updated_at FROM propostas ORDER BY updated_at DESC")->fetchAll();
+    $empresaFiltro = substr(trim($_GET['empresa'] ?? ''), 0, 255);
+    $valorFiltro = substr(trim($_GET['valor'] ?? ''), 0, 80);
+    $servicoFiltro = substr(trim($_GET['servico'] ?? ''), 0, 255);
+    $sqlLista = "SELECT id, tipo, numero, cliente_nome, objeto, data_proposta, updated_at FROM propostas";
+    $whereLista = [];
+    $paramsLista = [];
+    if ($empresaFiltro !== '') { $whereLista[] = 'cliente_nome LIKE ?'; $paramsLista[] = '%' . $empresaFiltro . '%'; }
+    if ($valorFiltro !== '') { $whereLista[] = 'dados LIKE ?'; $paramsLista[] = '%' . $valorFiltro . '%'; }
+    if ($servicoFiltro !== '') {
+        $whereLista[] = '(objeto LIKE ? OR dados LIKE ?)';
+        $paramsLista[] = '%' . $servicoFiltro . '%';
+        $paramsLista[] = '%' . $servicoFiltro . '%';
+    }
+    if ($whereLista) $sqlLista .= ' WHERE ' . implode(' AND ', $whereLista);
+    $sqlLista .= ' ORDER BY updated_at DESC';
+    $stmtLista = $db->prepare($sqlLista);
+    $stmtLista->execute($paramsLista);
+    $lista = $stmtLista->fetchAll();
 ?>
 
 <div class="alert alert-info">
@@ -271,6 +294,15 @@ layout_start('Propostas Comerciais', 'propostas');
 
 <div class="card">
   <div class="card-title">📑 Propostas Salvas</div>
+  <form method="GET" class="frow" style="align-items:end;margin-bottom:18px">
+    <div class="fg"><label>Empresa</label><input type="text" name="empresa" value="<?= e($empresaFiltro) ?>" placeholder="Nome do cliente"></div>
+    <div class="fg"><label>Valor</label><input type="text" name="valor" value="<?= e($valorFiltro) ?>" placeholder="Ex: 18.500,00"></div>
+    <div class="fg"><label>Serviço</label><input type="text" name="servico" value="<?= e($servicoFiltro) ?>" placeholder="Ex: Pintura"></div>
+    <div style="display:flex;gap:7px;margin-bottom:14px">
+      <button class="btn btn-primary btn-sm" type="submit">Filtrar</button>
+      <a class="btn btn-ghost btn-sm" href="/admin/propostas.php">Limpar</a>
+    </div>
+  </form>
   <?php if (!$lista): ?>
     <div class="empty"><div class="empty-icon">📭</div><p>Nenhuma proposta criada ainda.</p></div>
   <?php else: ?>
@@ -589,7 +621,11 @@ layout_start('Propostas Comerciais', 'propostas');
   </div>
 
   <div style="display:flex;gap:10px;margin-bottom:40px">
-    <button type="submit" class="btn btn-primary">💾 Salvar Proposta</button>
+    <button type="submit" name="save_mode" value="overwrite" class="btn btn-primary">💾 <?= $id ? 'Sobrescrever proposta' : 'Salvar proposta' ?></button>
+    <?php if ($id): ?>
+      <button type="submit" name="save_mode" value="copy" class="btn btn-secondary">Salvar como nova</button>
+    <?php endif ?>
+    <button type="submit" name="save_mode" value="print" class="btn btn-secondary">Salvar e gerar PDF</button>
     <a href="/admin/propostas.php" class="btn btn-ghost">Cancelar</a>
   </div>
 </form>
@@ -621,39 +657,59 @@ layout_start('Propostas Comerciais', 'propostas');
 </template>
 
 <script>
-document.getElementById('add-escopo')?.addEventListener('click', () => {
-  const tpl = document.getElementById('tpl-escopo').content.cloneNode(true);
+if (!Element.prototype.matches) Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function (selector) {
+    var element = this;
+    while (element && element.nodeType === 1) {
+      if (element.matches(selector)) return element;
+      element = element.parentElement;
+    }
+    return null;
+  };
+}
+var addEscopo = document.getElementById('add-escopo');
+if (addEscopo) addEscopo.onclick = function () {
+  var tpl = document.getElementById('tpl-escopo').content.cloneNode(true);
   document.getElementById('escopo-rows').appendChild(tpl);
-});
-document.getElementById('add-valor')?.addEventListener('click', () => {
-  const tpl = document.getElementById('tpl-valor').content.cloneNode(true);
+};
+var addValor = document.getElementById('add-valor');
+if (addValor) addValor.onclick = function () {
+  var tpl = document.getElementById('tpl-valor').content.cloneNode(true);
   document.getElementById('valor-rows').appendChild(tpl);
   updateValorTotal();
-});
+};
 
 function parseValorBR(value) {
-  const clean = String(value || '').replace(/[^\d,.-]/g, '').replace(/\.(?=.*\.)/g, '');
-  const normalized = clean.includes(',') ? clean.replace(/\./g, '').replace(',', '.') : clean;
-  const number = Number.parseFloat(normalized);
-  return Number.isFinite(number) ? number : 0;
+  var clean = String(value || '').replace(/[^\d,.-]/g, '').replace(/\.(?=.*\.)/g, '');
+  var normalized = clean.indexOf(',') !== -1 ? clean.replace(/\./g, '').replace(',', '.') : clean;
+  var number = parseFloat(normalized);
+  return isFinite(number) ? number : 0;
 }
 function updateValorTotal() {
-  const total = [...document.querySelectorAll('.valor-money')].reduce((sum, input) => sum + parseValorBR(input.value), 0);
-  const formatted = total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const preview = document.getElementById('valor-total-preview');
-  const hidden = document.getElementById('valor_total');
-  if (preview) preview.textContent = `R$ ${formatted}`;
+  var inputs = document.querySelectorAll('.valor-money');
+  var total = 0;
+  for (var i = 0; i < inputs.length; i++) total += parseValorBR(inputs[i].value);
+  var formatted = total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  var preview = document.getElementById('valor-total-preview');
+  var hidden = document.getElementById('valor_total');
+  if (preview) preview.textContent = 'R$ ' + formatted;
   if (hidden) hidden.value = formatted;
 }
-document.getElementById('valor-rows')?.addEventListener('input', updateValorTotal);
+var valorRows = document.getElementById('valor-rows');
+if (valorRows) valorRows.addEventListener('input', updateValorTotal);
 updateValorTotal();
-document.getElementById('add-item')?.addEventListener('click', () => {
-  const tpl = document.getElementById('tpl-item').content.cloneNode(true);
+var addItem = document.getElementById('add-item');
+if (addItem) addItem.onclick = function () {
+  var tpl = document.getElementById('tpl-item').content.cloneNode(true);
   document.getElementById('itens-rows').appendChild(tpl);
-});
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('remove-row')) {
-    e.target.closest('.escopo-row, .item-row, .valor-row')?.remove();
+};
+document.addEventListener('click', function (event) {
+  var target = event.target;
+  var removeButton = target.closest ? target.closest('.remove-row') : null;
+  if (removeButton) {
+    var row = removeButton.closest('.escopo-row, .item-row, .valor-row');
+    if (row && row.parentNode) row.parentNode.removeChild(row);
     updateValorTotal();
   }
 });
