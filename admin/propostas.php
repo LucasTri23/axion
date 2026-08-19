@@ -55,6 +55,9 @@ function defaultsPequena(): array {
         'itens' => [
             ['descricao' => '', 'desenho' => '', 'posicao' => '01'],
         ],
+        'valores' => [
+            ['descricao' => '', 'valor' => ''],
+        ],
         'fornecimento' => "Fabricação dos componentes metálicos conforme desenhos fornecidos\nFornecimento de mão de obra especializada\nFabricação e montagem em oficina\nControle dimensional durante o processo de fabricação\nInspeção visual dos componentes antes da liberação para entrega\nDisponibilização do material para retirada na modalidade FOB",
         'valor_total' => '',
         'obs_fiscal'  => 'Os impostos incidentes deverão ser destacados conforme emissão da nota fiscal e enquadramento fiscal aplicável.',
@@ -172,8 +175,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'posicao'   => substr(trim($pos[$i] ?? ''), 0, 20),
                 ];
             }
+            $valorDescs = $_POST['valor_descricao'] ?? [];
+            $valorNums  = $_POST['valor_item'] ?? [];
+            $valores = [];
+            foreach ($valorDescs as $i => $descricaoValor) {
+                $descricaoValor = trim(strip_tags($descricaoValor));
+                $valorItem = trim(strip_tags($valorNums[$i] ?? ''));
+                if ($descricaoValor === '' && $valorItem === '') continue;
+                $valores[] = [
+                    'descricao' => substr($descricaoValor, 0, 255),
+                    'valor' => substr($valorItem, 0, 40),
+                ];
+            }
             $dados += [
                 'itens'         => $itens,
+                'valores'       => $valores,
                 'fornecimento'  => trim($_POST['fornecimento'] ?? ''),
                 'valor_total'   => substr(trim($_POST['valor_total'] ?? ''), 0, 40),
                 'obs_fiscal'    => trim($_POST['obs_fiscal'] ?? ''),
@@ -221,6 +237,13 @@ if (isset($_GET['id'])) {
 
 layout_start('Propostas Comerciais', 'propostas');
 ?>
+
+<style>
+@media (max-width: 760px) {
+  .valor-row { grid-template-columns: 1fr !important; align-items: stretch !important; }
+  .valor-row .remove-row { margin-bottom: 14px !important; justify-self: start; }
+}
+</style>
 
 <?php if (isset($_GET['saved'])): ?>
   <div class="alert alert-success">✔ Proposta salva com sucesso.</div>
@@ -285,6 +308,9 @@ layout_start('Propostas Comerciais', 'propostas');
     // ── Formulário (criação/edição) ─────────────────────────────────
     $defaults = $tipo === 'grande' ? defaultsGrande() : defaultsPequena();
     $d = $proposta ? array_merge($defaults, $proposta['dados']) : $defaults;
+    if ($tipo === 'pequena' && $proposta && empty($proposta['dados']['valores']) && !empty($d['valor_total'])) {
+        $d['valores'] = [['descricao' => 'Valor total da proposta', 'valor' => $d['valor_total']]];
+    }
     $id = $proposta['id'] ?? 0;
     $numero  = $proposta['numero']  ?? '';
     $revisao = $proposta['revisao'] ?? '00';
@@ -454,9 +480,22 @@ layout_start('Propostas Comerciais', 'propostas');
 
   <div class="card">
     <div class="card-title">💰 Valor e Dados Fiscais</div>
-    <div class="fg" style="max-width:220px"><label>Valor total (R$)</label>
-      <input type="text" name="valor_total" value="<?= $v('valor_total') ?>" placeholder="Ex: 51.440,00">
+    <p style="font-size:13px;color:var(--gray);margin-bottom:14px">Informe cada valor separadamente e descreva claramente a que ele se refere.</p>
+    <div id="valor-rows">
+      <?php foreach (($d['valores'] ?? []) as $valor): ?>
+      <div class="valor-row frow" style="align-items:end;grid-template-columns:minmax(0,2fr) minmax(160px,1fr) auto;margin-bottom:10px">
+        <div class="fg"><label>Descrição do valor</label><input type="text" name="valor_descricao[]" value="<?= e($valor['descricao'] ?? '') ?>" placeholder="Ex: Fabricação das estruturas"></div>
+        <div class="fg"><label>Valor (R$)</label><input type="text" class="valor-money" name="valor_item[]" value="<?= e($valor['valor'] ?? '') ?>" placeholder="Ex: 18.500,00" inputmode="decimal"></div>
+        <button type="button" class="btn btn-danger btn-sm remove-row" style="margin-bottom:14px">Remover</button>
+      </div>
+      <?php endforeach ?>
     </div>
+    <button type="button" id="add-valor" class="btn btn-ghost btn-sm">+ Adicionar valor</button>
+    <div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;margin:16px 0 22px;padding:14px 16px;border:1px solid rgba(255,255,255,.08);border-radius:8px">
+      <span style="font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.7px">Total calculado</span>
+      <strong id="valor-total-preview" style="font-size:18px;color:var(--orange)">R$ 0,00</strong>
+    </div>
+    <input type="hidden" name="valor_total" id="valor_total" value="<?= $v('valor_total') ?>">
     <div class="fg"><label>Observação fiscal</label>
       <textarea name="obs_fiscal"><?= $v('obs_fiscal') ?></textarea>
     </div>
@@ -573,18 +612,49 @@ layout_start('Propostas Comerciais', 'propostas');
   </div>
 </template>
 
+<template id="tpl-valor">
+  <div class="valor-row frow" style="align-items:end;grid-template-columns:minmax(0,2fr) minmax(160px,1fr) auto;margin-bottom:10px">
+    <div class="fg"><label>Descrição do valor</label><input type="text" name="valor_descricao[]" placeholder="Ex: Montagem em campo"></div>
+    <div class="fg"><label>Valor (R$)</label><input type="text" class="valor-money" name="valor_item[]" placeholder="Ex: 8.750,00" inputmode="decimal"></div>
+    <button type="button" class="btn btn-danger btn-sm remove-row" style="margin-bottom:14px">Remover</button>
+  </div>
+</template>
+
 <script>
 document.getElementById('add-escopo')?.addEventListener('click', () => {
   const tpl = document.getElementById('tpl-escopo').content.cloneNode(true);
   document.getElementById('escopo-rows').appendChild(tpl);
 });
+document.getElementById('add-valor')?.addEventListener('click', () => {
+  const tpl = document.getElementById('tpl-valor').content.cloneNode(true);
+  document.getElementById('valor-rows').appendChild(tpl);
+  updateValorTotal();
+});
+
+function parseValorBR(value) {
+  const clean = String(value || '').replace(/[^\d,.-]/g, '').replace(/\.(?=.*\.)/g, '');
+  const normalized = clean.includes(',') ? clean.replace(/\./g, '').replace(',', '.') : clean;
+  const number = Number.parseFloat(normalized);
+  return Number.isFinite(number) ? number : 0;
+}
+function updateValorTotal() {
+  const total = [...document.querySelectorAll('.valor-money')].reduce((sum, input) => sum + parseValorBR(input.value), 0);
+  const formatted = total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const preview = document.getElementById('valor-total-preview');
+  const hidden = document.getElementById('valor_total');
+  if (preview) preview.textContent = `R$ ${formatted}`;
+  if (hidden) hidden.value = formatted;
+}
+document.getElementById('valor-rows')?.addEventListener('input', updateValorTotal);
+updateValorTotal();
 document.getElementById('add-item')?.addEventListener('click', () => {
   const tpl = document.getElementById('tpl-item').content.cloneNode(true);
   document.getElementById('itens-rows').appendChild(tpl);
 });
 document.addEventListener('click', e => {
   if (e.target.classList.contains('remove-row')) {
-    e.target.closest('.escopo-row, .item-row').remove();
+    e.target.closest('.escopo-row, .item-row, .valor-row')?.remove();
+    updateValorTotal();
   }
 });
 </script>

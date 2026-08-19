@@ -100,6 +100,44 @@ table.data-tbl td{border:1px solid #ccc;padding:8px 10px}
   .escopo-block, table{break-inside:avoid}
   @page{size:A4;margin:12mm}
 }
+:root{--corp-navy:#07111f;--corp-blue:#10263d;--corp-orange:#e8751a;--corp-ink:#17212b;--corp-muted:#66717d;--corp-line:#d9dfe5;--corp-soft:#f3f5f7}
+body{font-family:'Segoe UI',Arial,sans-serif;color:var(--corp-ink);background:#dfe3e7;font-size:13px}
+.toolbar{background:var(--corp-navy);box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.toolbar a,.toolbar button{border-radius:3px}
+.toolbar .pdf{background:var(--corp-orange)}
+.sheet{padding:0 46px 34px;box-shadow:0 8px 40px rgba(7,17,31,.18);overflow:hidden}
+.brand-header{margin:0 -46px 30px;padding:24px 46px 22px;background:var(--corp-navy);color:#fff;border-bottom:5px solid var(--corp-orange)}
+.brand-top{display:flex;align-items:center;justify-content:space-between;gap:24px}
+.brand-logo{width:126px;height:auto;display:block}
+.doc-kind{text-align:right;font-size:10px;letter-spacing:2px;text-transform:uppercase;color:#c8d1da}
+.doc-kind strong{display:block;margin-top:4px;font-size:22px;line-height:1.1;letter-spacing:.5px;color:#fff}
+.brand-meta{display:grid;grid-template-columns:1.4fr 1fr 1fr;margin-top:22px;border-top:1px solid rgba(255,255,255,.16);padding-top:14px;gap:20px}
+.brand-meta span{display:block;font-size:9px;letter-spacing:1.2px;text-transform:uppercase;color:#91a0ae;margin-bottom:3px}
+.brand-meta b{font-size:12px;font-weight:600;color:#fff}
+h1.title{font-size:28px;line-height:1.1;text-align:left;margin:28px 0 7px;color:var(--corp-navy);letter-spacing:-.4px}
+p.subtitle{text-align:left;font-size:14px;font-weight:600;margin-bottom:24px;color:var(--corp-muted)}
+h2.sec{font-size:14px;color:var(--corp-navy);border:0;border-left:4px solid var(--corp-orange);padding:4px 0 4px 11px;margin:28px 0 12px;text-transform:uppercase;letter-spacing:.5px;background:linear-gradient(90deg,var(--corp-soft),transparent)}
+h3.sub{font-size:13px;color:var(--corp-blue);margin:17px 0 7px}
+p{text-align:left}
+table.info-tbl,table.data-tbl{border-collapse:separate;border-spacing:0;border:1px solid var(--corp-line);border-radius:4px;overflow:hidden}
+table.info-tbl td,table.data-tbl td{border:0;border-bottom:1px solid var(--corp-line);padding:9px 11px;vertical-align:top}
+table.info-tbl tr:last-child td,table.data-tbl tr:last-child td{border-bottom:0}
+table.info-tbl td.k{background:var(--corp-soft);color:var(--corp-navy);width:185px}
+table.data-tbl th{background:var(--corp-blue);padding:9px 11px;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
+table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
+.money-table td:last-child,.money-table th:last-child{text-align:right;width:170px;white-space:nowrap}
+.money-total{display:flex;justify-content:space-between;align-items:center;background:var(--corp-navy);color:#fff;padding:14px 16px;margin:-8px 0 16px;border-radius:4px}
+.money-total span{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#b9c4ce}
+.money-total strong{font-size:18px}
+.sign{padding-top:18px;border-top:1px solid var(--corp-line)}
+.sign b{color:var(--corp-navy)}
+.footer-bar{border-top:2px solid var(--corp-orange);font-size:9.5px;color:var(--corp-muted)}
+@media print{
+  .sheet{padding:0 12mm 10mm;overflow:visible}
+  .brand-header{margin:0 -12mm 8mm;padding:8mm 12mm 6mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  h2.sec,table.data-tbl th,.money-total{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  @page{size:A4;margin:0 10mm 10mm}
+}
 </style>
 </head>
 <body>
@@ -112,17 +150,19 @@ table.data-tbl td{border:1px solid #ccc;padding:8px 10px}
 
 <div class="sheet">
 
-<?php if ($tipo === 'grande'): ?>
-
-  <div class="hdr">
-    <div class="logo-cell"><img src="/img/logo.png" alt="Axion"></div>
-    <div class="mid-cell">PROPOSTA<br>TÉCNICA</div>
-    <div class="info-cell">
-      <div><b>Orçamento:</b> <?= e($p['numero'] ?: '—') ?></div>
-      <div><b>Revisão:</b> <?= e($p['revisao'] ?: '00') ?></div>
-      <div><b>Data:</b> <?= e($dataFmt ?: '—') ?></div>
+  <header class="brand-header">
+    <div class="brand-top">
+      <img src="/img/logo.png" class="brand-logo" alt="Axion Industrial">
+      <div class="doc-kind">Documento comercial<strong><?= $tipo === 'grande' ? 'Proposta Técnica' : 'Proposta Comercial' ?></strong></div>
     </div>
-  </div>
+    <div class="brand-meta">
+      <div><span>Cliente</span><b><?= e($p['cliente_nome']) ?></b></div>
+      <div><span>Proposta</span><b><?= e($p['numero'] ?: 'Em elaboração') ?> / Rev. <?= e($p['revisao'] ?: '00') ?></b></div>
+      <div><span>Emissão</span><b><?= e($dataFmt ?: 'Não informada') ?></b></div>
+    </div>
+  </header>
+
+<?php if ($tipo === 'grande'): ?>
 
   <h1 class="title">PROPOSTA TÉCNICA<br>COMERCIAL</h1>
   <p class="subtitle" style="font-weight:400;font-size:14px">Axion Industrial Ltda</p>
@@ -223,10 +263,6 @@ table.data-tbl td{border:1px solid #ccc;padding:8px 10px}
 
 <?php else: /* ── PADRÃO PEQUENA ─────────────────────────────────── */ ?>
 
-  <img src="/img/logo.png" class="center-logo" alt="Axion">
-  <p class="company-name">AXION INDUSTRIAL LTDA</p>
-  <p class="company-cnpj">CNPJ: 63.637.526/0001-05</p>
-
   <h1 class="title" style="font-size:22px">PROPOSTA COMERCIAL</h1>
   <p class="subtitle"><?= e(strtoupper($p['objeto'] ?: '')) ?></p>
 
@@ -255,7 +291,23 @@ table.data-tbl td{border:1px solid #ccc;padding:8px 10px}
   <ul><?= bullets($g('fornecimento')) ?></ul>
 
   <h2 class="sec">3. Valor</h2>
-  <p class="valor-total">VALOR TOTAL DA PROPOSTA: R$ <?= e($g('valor_total') ?: '—') ?></p>
+  <?php
+    $valores = $g('valores', []);
+    if (!$valores && $g('valor_total')) {
+        $valores = [['descricao' => 'Valor total da proposta', 'valor' => $g('valor_total')]];
+    }
+  ?>
+  <?php if ($valores): ?>
+    <table class="data-tbl money-table">
+      <thead><tr><th>Composição comercial</th><th>Valor</th></tr></thead>
+      <tbody>
+      <?php foreach ($valores as $valor): ?>
+        <tr><td><?= e($valor['descricao'] ?: 'Item comercial') ?></td><td>R$ <?= e($valor['valor'] ?: '—') ?></td></tr>
+      <?php endforeach ?>
+      </tbody>
+    </table>
+  <?php endif ?>
+  <div class="money-total"><span>Valor total da proposta</span><strong>R$ <?= e($g('valor_total') ?: '—') ?></strong></div>
   <p><b>Observação fiscal:</b> <?= e($g('obs_fiscal')) ?></p>
 
   <h3 class="sub">3.1. Dados Fiscais para Emissão de Nota</h3>

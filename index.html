@@ -1,18 +1,61 @@
-﻿<!DOCTYPE html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-BR" class="no-js">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AXION — Estruturas, Pintura e Calderaria Industrial</title>
+<title>Axion Industrial | Calderaria, Estruturas Metálicas e Pintura</title>
+<meta name="description" content="A Axion Industrial executa serviços de calderaria em geral, estruturas metálicas e pintura industrial, com soluções personalizadas para cada cliente e projeto.">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<link rel="canonical" href="https://axionindustrial.com.br/">
+<meta property="og:locale" content="pt_BR">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Axion Industrial | Soluções em Calderaria e Estruturas Metálicas">
+<meta property="og:description" content="Serviços completos de calderaria, estruturas metálicas e pintura industrial, desenvolvidos sob medida para cada projeto.">
+<meta property="og:url" content="https://axionindustrial.com.br/">
+<meta property="og:site_name" content="Axion Industrial">
+<meta property="og:image" content="https://axionindustrial.com.br/img/logo.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Bebas+Neue&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/style.css">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "LocalBusiness",
+  "name": "Axion Industrial",
+  "legalName": "AXION INDUSTRIAL LTDA",
+  "url": "https://axionindustrial.com.br/",
+  "logo": "https://axionindustrial.com.br/img/logo.png",
+  "image": "https://axionindustrial.com.br/img/WhatsApp%20Image%202026-05-19%20at%2021.31.29.jpeg",
+  "description": "Empresa especializada em calderaria em geral, fabricação e montagem de estruturas metálicas e pintura industrial, com soluções personalizadas.",
+  "telephone": "+55 12 99651-3704",
+  "email": "adm@axionindustrial.com.br",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Rua Itamar Raul Mendes, 30 - São Paulo",
+    "addressLocality": "Matozinhos",
+    "addressRegion": "MG",
+    "postalCode": "35720-000",
+    "addressCountry": "BR"
+  },
+  "areaServed": "Brasil",
+  "knowsAbout": [
+    "Calderaria industrial",
+    "Estruturas metálicas",
+    "Pintura industrial",
+    "Jateamento abrasivo",
+    "Projetos personalizados em metal"
+  ]
+}
+</script>
 </head>
 <body>
 
+<a href="#hero" class="skip-link">Pular para o conteúdo</a>
+
 <!-- NAV -->
 <nav id="nav">
-  <a href="#" class="logo"><img src="img/logo.png" alt="Axion" class="logo-img"></a>
+  <a href="#hero" class="logo"><img src="img/logo.png" alt="Axion" class="logo-img"></a>
   <ul class="nav-links">
     <li><a href="#servicos">Serviços</a></li>
     <li><a href="#portfolio">Portfólio</a></li>
@@ -20,30 +63,56 @@
     <li><a href="#diferenciais">Diferenciais</a></li>
     <li><a href="#contato" class="nb">Solicitar Orçamento</a></li>
   </ul>
-  <div class="ham" id="ham"><span></span><span></span><span></span></div>
+  <button class="ham" id="ham" aria-label="Abrir menu" aria-expanded="false" aria-controls="mnav">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
+
+<!-- MENU MOBILE -->
+<div class="mnav" id="mnav">
+  <a href="#servicos">Serviços</a>
+  <a href="#portfolio">Portfólio</a>
+  <a href="#sobre">Sobre Nós</a>
+  <a href="#diferenciais">Diferenciais</a>
+  <a href="#contato" class="nb">Solicitar Orçamento</a>
+</div>
 
 <!-- HERO -->
 <section id="hero">
-  <div class="hero-bg" id="c-hero-bg"></div>
-  <canvas id="cvs"></canvas>
+  <div class="hero-bg-wrap">
+    <div class="hero-bg" id="c-hero-bg"></div>
+  </div>
+  <div class="hero-grid" aria-hidden="true"></div>
+  <div class="hero-marks" aria-hidden="true">
+    <span class="hm-1">REV. A — ESC 1:50</span>
+    <span class="hm-2">TOL ±0.2mm</span>
+    <span class="hm-3">ABNT / ASME</span>
+  </div>
   <div class="hero-ov"></div>
   <div class="hero-ct">
     <div class="badge"><span class="bdot"></span><span id="c-hero-badge">Excelência em Metalurgia Industrial</span></div>
     <h1 class="ht">
-      <span id="c-hero-l1">CONSTRUINDO</span><br>
-      <span class="to" id="c-hero-l2">O FUTURO</span><br>
-      <span class="ts" id="c-hero-l3">COM PRECISÃO</span>
+      <span class="mask"><span id="c-hero-l1">CONSTRUINDO</span></span>
+      <span class="mask"><span class="to" id="c-hero-l2">O FUTURO</span></span>
+      <span class="mask"><span class="ts" id="c-hero-l3">COM PRECISÃO</span></span>
     </h1>
     <p class="hs" id="c-hero-sub">Soluções completas em fabricação e montagem de estruturas metálicas, pintura a jato industrial e calderaria — qualidade e segurança em cada projeto.</p>
     <div class="hb">
-      <a href="#contato" class="btn-m">Solicitar Orçamento <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
+      <a href="#contato" class="btn-m">Solicitar Orçamento <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
       <a href="#portfolio" class="btn-g"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Ver Portfólio</a>
     </div>
     <div class="hkpis">
       <div class="hkpi"><h3 id="c-kpi1n">10+</h3><p id="c-kpi1l">Anos de Mercado</p></div>
       <div class="hkpi"><h3 id="c-kpi2n">500+</h3><p id="c-kpi2l">Projetos Concluídos</p></div>
       <div class="hkpi"><h3 id="c-kpi3n">100%</h3><p id="c-kpi3l">Comprometimento</p></div>
+    </div>
+    <div class="eng-strip" aria-hidden="true">
+      <span>Projeto</span><span class="eng-arrow">→</span>
+      <span>Fabricação</span><span class="eng-arrow">→</span>
+      <span>Pintura</span><span class="eng-arrow">→</span>
+      <span>Montagem</span><span class="eng-arrow">→</span>
+      <span>Entrega</span>
+      <span class="eng-dot"></span>
     </div>
   </div>
   <div class="scroll-cue"><span>Scroll</span><div class="strack"></div></div>
@@ -63,12 +132,12 @@
 
       <!-- ESTRUTURAS -->
       <div class="sc-card fu">
-        <div class="sc-img">
+        <div class="sc-img scan-wrap">
           <img src="img/WhatsApp%20Image%202026-05-19%20at%2021.31.34%20%281%29.jpeg" alt="Fabricação de Estruturas" loading="lazy" id="c-img-service1">
           <div class="sc-img-ov"></div>
         </div>
         <div class="sc-body">
-          <div class="sc-icon">⚙️</div>
+          <div class="sc-icon" aria-hidden="true">01</div>
           <h3>Fabricação e Montagem de Estruturas</h3>
           <p>Projetamos e fabricamos estruturas metálicas sob medida — de galpões industriais a suportes especializados — com rigoroso controle de qualidade.</p>
           <ul class="sc-list">
@@ -86,12 +155,12 @@
 
       <!-- PINTURA -->
       <div class="sc-card fu">
-        <div class="sc-img">
+        <div class="sc-img scan-wrap">
           <img src="img/WhatsApp%20Image%202026-05-19%20at%2021.31.32%20%281%29.jpeg" alt="Pintura a Jato" loading="lazy" id="c-img-service2">
           <div class="sc-img-ov"></div>
         </div>
         <div class="sc-body">
-          <div class="sc-icon">🎨</div>
+          <div class="sc-icon" aria-hidden="true">02</div>
           <h3>Pintura a Jato</h3>
           <p>Jateamento abrasivo e pintura industrial com produtos de alta performance, garantindo proteção anticorrosiva e durabilidade máxima para suas estruturas.</p>
           <ul class="sc-list">
@@ -109,14 +178,14 @@
 
       <!-- CALDERARIA -->
       <div class="sc-card fu">
-        <div class="sc-img">
+        <div class="sc-img scan-wrap">
           <img src="img/WhatsApp%20Image%202026-05-19%20at%2021.31.29.jpeg" alt="Calderaria" loading="lazy" id="c-img-service3">
           <div class="sc-img-ov"></div>
         </div>
         <div class="sc-body">
-          <div class="sc-icon">🔧</div>
+          <div class="sc-icon" aria-hidden="true">03</div>
           <h3>Calderaria em Geral</h3>
-          <p>Fabricação de equipamentos e componentes em chapas metálicas, tubulações, vasos de pressão e tanques industriais com total conformidade às normas ABNT.</p>
+          <p>Executamos serviços completos de calderaria em geral, desenvolvendo soluções sob medida para atender às necessidades específicas de cada cliente e projeto.</p>
           <ul class="sc-list">
             <li>Silos, tanques e reservatórios</li>
             <li>Dutos e tubulações industriais</li>
@@ -130,6 +199,30 @@
         </div>
       </div>
 
+    </div>
+  </div>
+</section>
+
+<!-- PROCESSO INDUSTRIAL -->
+<section id="processo">
+  <div class="bg-word" aria-hidden="true">FABRICAMOS.</div>
+  <div class="proc-w">
+    <div class="proc-hd">
+      <div class="stag">Como Trabalhamos</div>
+      <h2 class="stitle">Da Engenharia à <span>Entrega</span></h2>
+      <p>Cada projeto segue um fluxo industrial estruturado, do desenho técnico até a instalação final no cliente.</p>
+    </div>
+    <div class="proc-track">
+      <div class="proc-line"><div class="proc-line-fill"></div></div>
+      <div class="proc-steps">
+        <div class="proc-step"><span class="proc-num">01</span><h4>Projeto</h4><p>Levantamento técnico e desenho de engenharia.</p></div>
+        <div class="proc-step"><span class="proc-num">02</span><h4>Preparação</h4><p>Corte e preparo de chapas e perfis metálicos.</p></div>
+        <div class="proc-step"><span class="proc-num">03</span><h4>Fabricação</h4><p>Montagem das estruturas e componentes.</p></div>
+        <div class="proc-step"><span class="proc-num">04</span><h4>Soldagem</h4><p>União e reforço conforme normas ABNT/ASME.</p></div>
+        <div class="proc-step"><span class="proc-num">05</span><h4>Pintura</h4><p>Jateamento abrasivo e pintura anticorrosiva.</p></div>
+        <div class="proc-step"><span class="proc-num">06</span><h4>Montagem</h4><p>Instalação e içamento em campo.</p></div>
+        <div class="proc-step"><span class="proc-num">07</span><h4>Entrega</h4><p>Inspeção final e entrega ao cliente.</p></div>
+      </div>
     </div>
   </div>
 </section>
@@ -164,10 +257,12 @@
 
 <!-- ABOUT -->
 <section id="sobre">
+  <div class="bg-word" aria-hidden="true">MONTAMOS.</div>
   <div class="about-w">
     <div class="about-vis fu">
       <div class="about-img">
         <img src="img/WhatsApp%20Image%202026-05-19%20at%2021.31.31.jpeg" alt="Axion Industrial" loading="lazy" id="c-img-about">
+        <div class="about-reveal" aria-hidden="true"></div>
       </div>
       <div class="about-chip"><h4>10+</h4><p>Anos de Excelência</p></div>
     </div>
@@ -177,11 +272,32 @@
       <p id="c-about-p1">A Axion é uma empresa especializada em soluções metalúrgicas e industriais, comprometida com a excelência em cada projeto. Nossa equipe de profissionais altamente qualificados utiliza equipamentos de última geração para entregar resultados superiores.</p>
       <p id="c-about-p2">Atuamos em diversos segmentos industriais, oferecendo serviços integrados que vão desde a concepção do projeto até a entrega final — sempre com foco em segurança, qualidade e cumprimento de prazos.</p>
       <div class="pills">
-        <div class="pill"><div class="pill-ic">🛡️</div><div><h5>Segurança Total</h5><p>NR's e certificações em dia</p></div></div>
-        <div class="pill"><div class="pill-ic">⚡</div><div><h5>Entrega Ágil</h5><p>Cumprimento rigoroso de prazos</p></div></div>
-        <div class="pill"><div class="pill-ic">🏆</div><div><h5>Alta Qualidade</h5><p>Padrão técnico elevado</p></div></div>
-        <div class="pill"><div class="pill-ic">🔩</div><div><h5>Equipamentos Modernos</h5><p>Tecnologia de ponta</p></div></div>
+        <div class="pill"><div class="pill-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3 20 6v5c0 5.2-3.4 8.5-8 10-4.6-1.5-8-4.8-8-10V6l8-3z"/><path d="m8.5 12 2.2 2.2 4.8-5"/></svg></div><div><h5>Segurança Total</h5><p>NR's e certificações em dia</p></div></div>
+        <div class="pill"><div class="pill-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M13 2 5 13h6l-1 9 8-12h-6l1-8z"/></svg></div><div><h5>Entrega Ágil</h5><p>Cumprimento rigoroso de prazos</p></div></div>
+        <div class="pill"><div class="pill-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="M8.5 13 7 22l5-3 5 3-1.5-9"/><path d="m10 9 1.3 1.3L14.5 7"/></svg></div><div><h5>Alta Qualidade</h5><p>Padrão técnico elevado</p></div></div>
+        <div class="pill"><div class="pill-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M14.5 6.5a4 4 0 0 0-5.3 5.3L3 18l3 3 6.2-6.2a4 4 0 0 0 5.3-5.3l-2.6 2.6-3-3 2.6-2.6z"/></svg></div><div><h5>Equipamentos Modernos</h5><p>Tecnologia de ponta</p></div></div>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- LEADERSHIP -->
+<section id="lideranca">
+  <div class="leadership-w">
+    <div class="leadership-copy fu">
+      <div class="stag">Gestão presente</div>
+      <h2 class="stitle">Uma empresa feita por <span>pessoas</span></h2>
+      <p>Na Axion, cada projeto é acompanhado de perto, com comunicação clara, responsabilidade e atenção aos detalhes. Nossa liderança participa ativamente das decisões para garantir segurança, qualidade e confiança em cada entrega.</p>
+      <div class="leadership-values" aria-label="Compromissos da liderança">
+        <span>Proximidade</span>
+        <span>Transparência</span>
+        <span>Compromisso</span>
+      </div>
+    </div>
+    <div class="leadership-portrait fu">
+      <div class="leadership-frame" aria-hidden="true"></div>
+      <img src="img/dona.png" alt="Sócia da Axion Industrial" loading="lazy">
+      <div class="leadership-caption"><strong>Liderança Axion</strong><span>Gestão próxima de cada projeto</span></div>
     </div>
   </div>
 </section>
@@ -213,10 +329,10 @@
       <h2 class="stitle">Solicite um <span>Orçamento</span></h2>
       <p>Entre em contato com nossa equipe e receba uma proposta personalizada para o seu projeto. Respondemos em até 24 horas úteis.</p>
       <div class="ct-items">
-        <div class="ct-item"><div class="ct-ic">📞</div><div><h4>Telefone / WhatsApp</h4><p id="c-contact-phone">(12) 99651-3704</p></div></div>
-        <div class="ct-item"><div class="ct-ic">📧</div><div><h4>E-mail</h4><p id="c-contact-email">adm@axionindustrial.com.br</p></div></div>
-        <div class="ct-item"><div class="ct-ic">📍</div><div><h4>Localização</h4><p id="c-contact-address">Rua Itamar Raul Mendes, 30 - São Paulo, Matozinhos - MG, 35720-000, Matozinhos / MG — Estado</p></div></div>
-        <div class="ct-item"><div class="ct-ic">🕒</div><div><h4>Horário de Atendimento</h4><p id="c-contact-hours">Seg–Sex: 8h às 18h &nbsp;|&nbsp; Sáb: 8h às 12h</p></div></div>
+        <div class="ct-item"><div class="ct-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92z"/></svg></div><div><h4>Telefone / WhatsApp</h4><p id="c-contact-phone">(12) 99651-3704</p></div></div>
+        <div class="ct-item"><div class="ct-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="m22 6-10 7L2 6"/></svg></div><div><h4>E-mail</h4><p id="c-contact-email">adm@axionindustrial.com.br</p></div></div>
+        <div class="ct-item"><div class="ct-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2.5"/></svg></div><div><h4>Localização</h4><p id="c-contact-address">Rua Itamar Raul Mendes, 30 - São Paulo, Matozinhos - MG, 35720-000, Matozinhos / MG — Estado</p></div></div>
+        <div class="ct-item"><div class="ct-ic" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg></div><div><h4>Horário de Atendimento</h4><p id="c-contact-hours">Seg–Sex: 8h às 18h &nbsp;|&nbsp; Sáb: 8h às 12h</p></div></div>
       </div>
     </div>
     <div class="ct-form fu">
@@ -225,16 +341,16 @@
         <input type="text" id="f-website" name="website" autocomplete="off" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;top:auto;width:1px;height:1px;opacity:0">
         <input type="hidden" id="f-ts" name="form_ts">
         <div class="frow">
-          <div class="fg"><label>Nome Completo</label><input type="text" id="f-name" placeholder="Seu nome" required></div>
-          <div class="fg"><label>Empresa</label><input type="text" id="f-company" placeholder="Nome da empresa"></div>
+          <div class="fg"><label for="f-name">Nome Completo</label><input type="text" id="f-name" name="name" placeholder="Seu nome" required></div>
+          <div class="fg"><label for="f-company">Empresa</label><input type="text" id="f-company" name="company" placeholder="Nome da empresa"></div>
         </div>
         <div class="frow" style="margin-top:16px">
-          <div class="fg"><label>E-mail</label><input type="email" id="f-email" placeholder="seu@email.com" required></div>
-          <div class="fg"><label>Telefone</label><input type="tel" id="f-phone" placeholder="(12) 99651-3704"></div>
+          <div class="fg"><label for="f-email">E-mail</label><input type="email" id="f-email" name="email" placeholder="seu@email.com" required></div>
+          <div class="fg"><label for="f-phone">Telefone</label><input type="tel" id="f-phone" name="phone" placeholder="(12) 99651-3704"></div>
         </div>
         <div class="fg" style="margin-top:16px">
-          <label>Serviço de Interesse</label>
-          <select id="f-service">
+          <label for="f-service">Serviço de Interesse</label>
+          <select id="f-service" name="service">
             <option value="">Selecione um serviço...</option>
             <option>Fabricação e Montagem de Estruturas</option>
             <option>Pintura a Jato</option>
@@ -243,15 +359,66 @@
           </select>
         </div>
         <div class="fg" style="margin-top:16px">
-          <label>Descrição do Projeto</label>
-          <textarea id="f-desc" placeholder="Descreva brevemente seu projeto ou necessidade..."></textarea>
+          <label for="f-desc">Descrição do Projeto</label>
+          <textarea id="f-desc" name="description" placeholder="Descreva brevemente seu projeto ou necessidade..."></textarea>
         </div>
         <button type="submit" class="fsend" id="sendBtn">
           Enviar Mensagem
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+          <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
         </button>
       </form>
     </div>
+  </div>
+</section>
+
+<!-- LOCATION -->
+<section id="localizacao" aria-labelledby="location-title">
+  <div class="location-map">
+    <iframe
+      title="Mapa com a localização da Axion Industrial em Matozinhos, Minas Gerais"
+      src="https://www.google.com/maps?q=Rua%20Itamar%20Raul%20Mendes%2C%2030%2C%20Matozinhos%20MG%2C%2035720-000&output=embed"
+      loading="lazy"
+      referrerpolicy="no-referrer-when-downgrade"
+      allowfullscreen></iframe>
+  </div>
+  <div class="location-shell">
+    <div class="location-card">
+      <div class="stag">Nossa unidade</div>
+      <h2 id="location-title">Onde estamos</h2>
+      <p class="location-intro">Visite nossa estrutura ou trace a melhor rota até a Axion Industrial.</p>
+
+      <div class="location-details">
+        <div class="location-row">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0z"/><circle cx="12" cy="10" r="2.5"/></svg>
+          <div><strong>Axion Industrial Ltda</strong><span>Rua Itamar Raul Mendes, 30 - São Paulo<br>Matozinhos - MG, 35720-000</span></div>
+        </div>
+        <a class="location-row" href="tel:+5512996513704">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92z"/></svg>
+          <div><strong>Telefone</strong><span>(12) 99651-3704</span></div>
+        </a>
+        <a class="location-row" href="https://wa.me/5512996513704" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 11.5a8.4 8.4 0 0 1-9 8.5 8.8 8.8 0 0 1-3.8-.9L3 21l1.8-5a8.5 8.5 0 1 1 16.2-4.5z"/><path d="M8.5 8.5c.6 3.2 2.1 4.7 5 5.7"/></svg>
+          <div><strong>WhatsApp</strong><span>(12) 99651-3704</span></div>
+        </a>
+      </div>
+
+      <a class="location-route" href="https://www.google.com/maps/dir/?api=1&destination=Rua%20Itamar%20Raul%20Mendes%2C%2030%2C%20Matozinhos%20MG%2C%2035720-000" target="_blank" rel="noopener">
+        Traçar rota
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- CTA FINAL -->
+<section id="cta-final">
+  <div class="cta-bg" aria-hidden="true"></div>
+  <div class="cta-ov" aria-hidden="true"></div>
+  <div class="cta-w fu">
+    <div class="cta-eyebrow">Vamos Construir Juntos</div>
+    <h2 class="cta-t1">TEM UM PROJETO?</h2>
+    <h2 class="cta-t2">NÓS PODEMOS FABRICÁ-LO.</h2>
+    <a href="#contato" class="btn-m">Solicitar Orçamento <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg></a>
   </div>
 </section>
 
@@ -259,18 +426,18 @@
 <footer>
   <div class="ft">
     <div class="fb">
-      <a href="#" class="logo"><img src="img/logo.png" alt="Axion" class="logo-img logo-footer"></a>
+      <a href="#hero" class="logo"><img src="img/logo.png" alt="Axion" class="logo-img logo-footer"></a>
       <p>Soluções completas em fabricação de estruturas metálicas, pintura a jato e calderaria industrial — precisão e qualidade em cada entrega.</p>
       <div class="socials">
-        <a href="mailto:adm@axionindustrial.com.br" class="soc" title="E-mail">✉</a>
-        <a href="https://wa.me/5512996513704" target="_blank" class="soc" title="WhatsApp">
+        <a href="mailto:adm@axionindustrial.com.br" class="soc" title="E-mail" aria-label="Enviar e-mail">✉</a>
+        <a href="https://wa.me/5512996513704" target="_blank" rel="noopener" class="soc" title="WhatsApp" aria-label="Abrir WhatsApp">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
         </a>
       </div>
     </div>
     <div class="fc"><h4>Serviços</h4><ul><li><a href="#servicos">Fabricação de Estruturas</a></li><li><a href="#servicos">Montagem Industrial</a></li><li><a href="#servicos">Pintura a Jato</a></li><li><a href="#servicos">Calderaria</a></li></ul></div>
     <div class="fc"><h4>Empresa</h4><ul><li><a href="#sobre">Sobre Nós</a></li><li><a href="#diferenciais">Diferenciais</a></li><li><a href="#portfolio">Portfólio</a></li><li><a href="#contato">Contato</a></li></ul></div>
-    <div class="fc"><h4>Contato</h4><ul><li><a href="#">(12) 99651-3704</a></li><li><a href="#">adm@axionindustrial.com.br</a></li><li><a href="#">Sua Cidade — Estado</a></li></ul></div>
+    <div class="fc"><h4>Contato</h4><ul><li><a href="tel:+5512996513704">(12) 99651-3704</a></li><li><a href="mailto:adm@axionindustrial.com.br">adm@axionindustrial.com.br</a></li><li><a href="#contato">Sua Cidade — Estado</a></li></ul></div>
   </div>
   <div class="fb2">
     <p>© 2025 Axion Estruturas &amp; Calderaria. Todos os direitos reservados. &nbsp;|&nbsp; <a href="/privacidade.html" style="color:inherit;text-decoration:underline">Política de Privacidade</a></p>
@@ -279,11 +446,11 @@
 </footer>
 
 <!-- LIGHTBOX -->
-<div id="lb">
-  <button class="lb-close" id="lb-close">✕</button>
-  <button class="lb-prev" id="lb-prev">‹</button>
+<div id="lb" role="dialog" aria-modal="true" aria-label="Visualização de imagem">
+  <button class="lb-close" id="lb-close" aria-label="Fechar">✕</button>
+  <button class="lb-prev" id="lb-prev" aria-label="Imagem anterior">‹</button>
   <div class="lb-img-wrap"><img id="lb-img" src="" alt=""></div>
-  <button class="lb-next" id="lb-next">›</button>
+  <button class="lb-next" id="lb-next" aria-label="Próxima imagem">›</button>
   <div class="lb-info">
     <div class="lb-title" id="lb-title"></div>
     <div class="lb-counter" id="lb-counter"></div>
@@ -291,10 +458,15 @@
 </div>
 
 <!-- WHATSAPP -->
-<a href="https://wa.me/5512996513704" target="_blank" class="wa" title="WhatsApp">
+<a href="https://wa.me/5512996513704" target="_blank" rel="noopener" class="wa" aria-label="Falar no WhatsApp">
+  <span class="wa-tip">Fale conosco</span>
   <svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
 </a>
 
+<!-- CURSOR CUSTOMIZADO (ativado via JS somente em desktop com ponteiro fino) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js" defer></script>
+<script src="https://unpkg.com/lenis@1.1.18/dist/lenis.min.js" defer></script>
 <script src="js/main.js" defer></script>
 </body>
 </html>
