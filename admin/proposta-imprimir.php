@@ -118,7 +118,8 @@ h1.title{font-size:28px;line-height:1.1;text-align:left;margin:28px 0 7px;color:
 p.subtitle{text-align:left;font-size:14px;font-weight:600;margin-bottom:24px;color:var(--corp-muted)}
 h2.sec{font-size:14px;color:var(--corp-navy);border:0;border-left:4px solid var(--corp-orange);padding:4px 0 4px 11px;margin:28px 0 12px;text-transform:uppercase;letter-spacing:.5px;background:linear-gradient(90deg,var(--corp-soft),transparent)}
 h3.sub{font-size:13px;color:var(--corp-blue);margin:17px 0 7px}
-p{text-align:left}
+.sheet p,.sheet li{text-align:justify}
+.sheet .money-observation{text-align:justify}
 table.info-tbl,table.data-tbl{border-collapse:separate;border-spacing:0;border:1px solid var(--corp-line);border-radius:4px;overflow:hidden}
 table.info-tbl td,table.data-tbl td{border:0;border-bottom:1px solid var(--corp-line);padding:9px 11px;vertical-align:top}
 table.info-tbl tr:last-child td,table.data-tbl tr:last-child td{border-bottom:0}
@@ -126,7 +127,7 @@ table.info-tbl td.k{background:var(--corp-soft);color:var(--corp-navy);width:185
 table.data-tbl th{background:var(--corp-blue);padding:9px 11px;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
 table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 .money-table td:last-child,.money-table th:last-child{text-align:right;width:170px;white-space:nowrap}
-.money-observation{margin-top:5px;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.money-observation{margin-top:8px;font-size:12px;line-height:1.6;overflow-wrap:anywhere}
 .money-table td:first-child{overflow-wrap:anywhere}
 .money-table td:nth-child(2),.money-table th:nth-child(2){width:95px;text-align:center}
 .money-total{display:flex;justify-content:space-between;align-items:center;background:var(--corp-navy);color:#fff;padding:14px 16px;margin:-8px 0 16px;border-radius:4px}
@@ -142,13 +143,14 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
   @page{size:A4;margin:0 10mm 10mm}
 }
 </style>
+<script src="/js/admin-proposta-imprimir.js" defer></script>
 </head>
 <body>
 
 <div class="toolbar">
   <a href="/admin/propostas.php" class="back">← Voltar</a>
   <span style="font-size:13px;color:#B8C4D0">Proposta — <?= e($p['cliente_nome']) ?></span>
-  <button class="pdf" onclick="window.print()">🖨️ Baixar PDF</button>
+  <button type="button" class="pdf" id="baixar-pdf">🖨️ Baixar PDF</button>
 </div>
 
 <div class="sheet">

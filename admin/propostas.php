@@ -245,6 +245,7 @@ layout_start('Propostas Comerciais', 'propostas');
 ?>
 
 <style>
+.valor-row textarea { min-height: 120px; line-height: 1.6; }
 @media (max-width: 760px) {
   .valor-row { grid-template-columns: 1fr !important; align-items: stretch !important; }
   .valor-row .remove-row { margin-bottom: 14px !important; justify-self: start; }
@@ -494,7 +495,7 @@ layout_start('Propostas Comerciais', 'propostas');
         <div class="fg"><label>Quantidade</label><input type="text" name="valor_quantidade[]" value="<?= e($valor['quantidade'] ?? '') ?>" placeholder="Ex: 10 peças"></div>
         <div class="fg"><label>Valor (R$)</label><input type="text" class="valor-money" name="valor_item[]" value="<?= e($valor['valor'] ?? '') ?>" placeholder="Ex: 18.500,00" inputmode="decimal"></div>
         <button type="button" class="btn btn-danger btn-sm remove-row" style="margin-bottom:14px">Remover</button>
-        <div class="fg" style="grid-column:1 / -1"><label>Observação do valor</label><textarea name="valor_observacao[]" rows="2" placeholder="Ex: Valor referente ao lote de 10 peças"><?= e($valor['observacao'] ?? '') ?></textarea></div>
+        <div class="fg" style="grid-column:1 / -1"><label>Observação do valor</label><textarea name="valor_observacao[]" rows="4" placeholder="Ex: Valor referente ao lote de 10 peças"><?= e($valor['observacao'] ?? '') ?></textarea></div>
       </div>
       <?php endforeach ?>
     </div>
@@ -624,30 +625,11 @@ layout_start('Propostas Comerciais', 'propostas');
     <div class="fg"><label>Quantidade</label><input type="text" name="valor_quantidade[]" placeholder="Ex: 10 peças"></div>
     <div class="fg"><label>Valor (R$)</label><input type="text" class="valor-money" name="valor_item[]" placeholder="Ex: 8.750,00" inputmode="decimal"></div>
     <button type="button" class="btn btn-danger btn-sm remove-row" style="margin-bottom:14px">Remover</button>
-    <div class="fg" style="grid-column:1 / -1"><label>Observação do valor</label><textarea name="valor_observacao[]" rows="2" placeholder="Ex: Valor referente ao lote de 10 peças"></textarea></div>
+    <div class="fg" style="grid-column:1 / -1"><label>Observação do valor</label><textarea name="valor_observacao[]" rows="4" placeholder="Ex: Valor referente ao lote de 10 peças"></textarea></div>
   </div>
 </template>
 
-<script>
-document.getElementById('add-escopo')?.addEventListener('click', () => {
-  const tpl = document.getElementById('tpl-escopo').content.cloneNode(true);
-  document.getElementById('escopo-rows').appendChild(tpl);
-});
-document.getElementById('add-valor')?.addEventListener('click', () => {
-  const tpl = document.getElementById('tpl-valor').content.cloneNode(true);
-  document.getElementById('valor-rows').appendChild(tpl);
-});
-
-document.getElementById('add-item')?.addEventListener('click', () => {
-  const tpl = document.getElementById('tpl-item').content.cloneNode(true);
-  document.getElementById('itens-rows').appendChild(tpl);
-});
-document.addEventListener('click', e => {
-  if (e.target.classList.contains('remove-row')) {
-    e.target.closest('.escopo-row, .item-row, .valor-row')?.remove();
-  }
-});
-</script>
+<script src="/js/admin-propostas.js" defer></script>
 
 <?php endif ?>
 
