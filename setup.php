@@ -94,6 +94,118 @@ $tables = [
     INDEX idx_attempted (attempted_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
 
+// ── Módulo Financeiro / Centros de Custo ───────────────────────────
+
+'centro_obras' => "CREATE TABLE IF NOT EXISTS centro_obras (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    os          VARCHAR(20)  DEFAULT '',
+    nome        VARCHAR(255) NOT NULL,
+    cliente     VARCHAR(255) DEFAULT '',
+    status      ENUM('ativo','concluido') DEFAULT 'ativo',
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at  DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_custos_obra' => "CREATE TABLE IF NOT EXISTS centro_custos_obra (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    obra_id     INT UNSIGNED NOT NULL,
+    categoria   ENUM('material','mao_obra','terceiros','impostos') DEFAULT 'material',
+    descricao   VARCHAR(255) DEFAULT '',
+    valor       DECIMAL(12,2) NOT NULL DEFAULT 0,
+    data        DATE NULL,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_obra (obra_id),
+    CONSTRAINT fk_custo_obra FOREIGN KEY (obra_id) REFERENCES centro_obras(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_lancamentos' => "CREATE TABLE IF NOT EXISTS centro_lancamentos (
+    id                  INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tipo                ENUM('ENTRADA','SAIDA') NOT NULL,
+    descricao           VARCHAR(255) DEFAULT '',
+    os                  VARCHAR(20)  DEFAULT '',
+    nfe                 VARCHAR(50)  DEFAULT '',
+    cliente_fornecedor  VARCHAR(255) DEFAULT '',
+    parcela             VARCHAR(20)  DEFAULT '',
+    data_lancamento     DATE NULL,
+    vencimento          DATE NULL,
+    valor_entrada       DECIMAL(12,2) NOT NULL DEFAULT 0,
+    valor_saida         DECIMAL(12,2) NOT NULL DEFAULT 0,
+    situacao            VARCHAR(20)  DEFAULT '',
+    centro              VARCHAR(100) DEFAULT 'GERAL',
+    observacao          VARCHAR(255) DEFAULT '',
+    created_at          DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at          DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_data   (data_lancamento),
+    INDEX idx_tipo   (tipo),
+    INDEX idx_centro (centro)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_funcionarios' => "CREATE TABLE IF NOT EXISTS centro_funcionarios (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    nome        VARCHAR(150) NOT NULL UNIQUE,
+    cpf         VARCHAR(20)  DEFAULT '',
+    telefone    VARCHAR(30)  DEFAULT '',
+    pix_chave   VARCHAR(150) DEFAULT '',
+    banco_info  VARCHAR(150) DEFAULT '',
+    ativo       TINYINT(1)   NOT NULL DEFAULT 1,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_folha_periodos' => "CREATE TABLE IF NOT EXISTS centro_folha_periodos (
+    id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    data_periodo  DATE NOT NULL,
+    tipo          ENUM('Adiantamento','Fechamento') DEFAULT 'Fechamento',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_data (data_periodo)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_folha_pagamentos' => "CREATE TABLE IF NOT EXISTS centro_folha_pagamentos (
+    id               INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    periodo_id       INT UNSIGNED NOT NULL,
+    funcionario_id   INT UNSIGNED NOT NULL,
+    valor            DECIMAL(12,2) NOT NULL DEFAULT 0,
+    vale_transporte  DECIMAL(12,2) NOT NULL DEFAULT 0,
+    observacao       VARCHAR(255) DEFAULT '',
+    created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_periodo (periodo_id),
+    INDEX idx_func    (funcionario_id),
+    CONSTRAINT fk_pgto_periodo FOREIGN KEY (periodo_id) REFERENCES centro_folha_periodos(id) ON DELETE CASCADE,
+    CONSTRAINT fk_pgto_func    FOREIGN KEY (funcionario_id) REFERENCES centro_funcionarios(id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_jato_pintura' => "CREATE TABLE IF NOT EXISTS centro_jato_pintura (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    cliente     VARCHAR(150) NOT NULL,
+    produto     VARCHAR(150) DEFAULT '',
+    data_saida  DATE NULL,
+    kg          DECIMAL(10,2) NOT NULL DEFAULT 0,
+    vr_kg       DECIMAL(8,2)  NOT NULL DEFAULT 1.5,
+    vr_total    DECIMAL(12,2) NOT NULL DEFAULT 0,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_data (data_saida)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_custos_fixos' => "CREATE TABLE IF NOT EXISTS centro_custos_fixos (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    descricao   VARCHAR(150) NOT NULL,
+    valor       DECIMAL(12,2) NOT NULL DEFAULT 0,
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_audit_log' => "CREATE TABLE IF NOT EXISTS centro_audit_log (
+    id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    user_id     INT UNSIGNED NULL,
+    username    VARCHAR(50)  DEFAULT '',
+    acao        ENUM('create','update','delete') NOT NULL,
+    tabela      VARCHAR(50)  NOT NULL,
+    registro_id INT UNSIGNED NOT NULL,
+    detalhes    TEXT,
+    ip_hash     VARCHAR(64)  DEFAULT '',
+    created_at  DATETIME DEFAULT CURRENT_TIMESTAMP,
+    INDEX idx_tabela  (tabela),
+    INDEX idx_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
 ];
 
 try {

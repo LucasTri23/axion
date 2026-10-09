@@ -72,6 +72,25 @@ function e(string $s): string {
     return htmlspecialchars($s, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
 }
 
+/** Formata valor monetário em R$ (pt-BR) */
+function brl($v): string {
+    return 'R$ ' . number_format((float)$v, 2, ',', '.');
+}
+
+/** Converte input de formulário (aceita vírgula ou ponto) para float */
+function toFloat($v): float {
+    return (float)str_replace(',', '.', trim((string)$v));
+}
+
+/** Mascara CPF/CNPJ para exibição — LGPD: minimiza exposição de dado pessoal */
+function maskDoc(string $doc): string {
+    $doc = trim($doc);
+    if ($doc === '') return '—';
+    $digits = preg_replace('/\D/', '', $doc);
+    if (strlen($digits) < 4) return str_repeat('*', strlen($doc));
+    return str_repeat('*', max(strlen($doc) - 4, 0)) . substr($doc, -4);
+}
+
 /** Redireciona e termina */
 function redirect(string $url): never {
     header('Location: ' . $url);
@@ -82,4 +101,24 @@ function redirect(string $url): never {
 function ipHash(): string {
     $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
     return hash('sha256', $ip . IP_HASH_SALT);
+}
+
+/**
+ * Log de auditoria do módulo Financeiro — OWASP A09: Security Logging.
+ * Grava quem fez o quê em qual registro, com um snapshot dos dados
+ * (essencial em exclusões: fica o registro do que foi apagado).
+ */
+function auditLog(string $acao, string $tabela, int $registroId, array $detalhes = []): void {
+    db()->prepare(
+        'INSERT INTO centro_audit_log (user_id, username, acao, tabela, registro_id, detalhes, ip_hash)
+         VALUES (?,?,?,?,?,?,?)'
+    )->execute([
+        $_SESSION['user_id']  ?? null,
+        $_SESSION['username'] ?? '',
+        $acao,
+        $tabela,
+        $registroId,
+        $detalhes ? json_encode($detalhes, JSON_UNESCAPED_UNICODE) : null,
+        ipHash(),
+    ]);
 }

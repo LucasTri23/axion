@@ -126,6 +126,9 @@ table.info-tbl td.k{background:var(--corp-soft);color:var(--corp-navy);width:185
 table.data-tbl th{background:var(--corp-blue);padding:9px 11px;font-size:10.5px;text-transform:uppercase;letter-spacing:.6px}
 table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 .money-table td:last-child,.money-table th:last-child{text-align:right;width:170px;white-space:nowrap}
+.money-observation{margin-top:5px;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.money-table td:first-child{overflow-wrap:anywhere}
+.money-table td:nth-child(2),.money-table th:nth-child(2){width:95px;text-align:center}
 .money-total{display:flex;justify-content:space-between;align-items:center;background:var(--corp-navy);color:#fff;padding:14px 16px;margin:-8px 0 16px;border-radius:4px}
 .money-total span{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#b9c4ce}
 .money-total strong{font-size:18px}
@@ -299,10 +302,14 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
   ?>
   <?php if ($valores): ?>
     <table class="data-tbl money-table">
-      <thead><tr><th>Composição comercial</th><th>Valor</th></tr></thead>
+      <thead><tr><th>Composição comercial</th><th>Quantidade</th><th>Valor</th></tr></thead>
       <tbody>
       <?php foreach ($valores as $valor): ?>
-        <tr><td><?= e($valor['descricao'] ?: 'Item comercial') ?></td><td>R$ <?= e($valor['valor'] ?: '—') ?></td></tr>
+        <tr>
+          <td><?= e($valor['descricao'] ?: 'Item comercial') ?><?php if (trim($valor['observacao'] ?? '')): ?><div class="money-observation"><b>Observação:</b> <?= nl2br(e($valor['observacao'])) ?></div><?php endif ?></td>
+          <td><?= e($valor['quantidade'] ?? '') ?: '—' ?></td>
+          <td>R$ <?= e($valor['valor'] ?: '—') ?></td>
+        </tr>
       <?php endforeach ?>
       </tbody>
     </table>

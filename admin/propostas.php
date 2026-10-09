@@ -56,7 +56,7 @@ function defaultsPequena(): array {
             ['descricao' => '', 'desenho' => '', 'posicao' => '01'],
         ],
         'valores' => [
-            ['descricao' => '', 'valor' => ''],
+            ['descricao' => '', 'quantidade' => '', 'valor' => '', 'observacao' => ''],
         ],
         'fornecimento' => "Fabricação dos componentes metálicos conforme desenhos fornecidos\nFornecimento de mão de obra especializada\nFabricação e montagem em oficina\nControle dimensional durante o processo de fabricação\nInspeção visual dos componentes antes da liberação para entrega\nDisponibilização do material para retirada na modalidade FOB",
         'valor_total' => '',
@@ -177,14 +177,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $valorDescs = $_POST['valor_descricao'] ?? [];
             $valorNums  = $_POST['valor_item'] ?? [];
+            $valorQuantidades = $_POST['valor_quantidade'] ?? [];
+            $valorObservacoes = $_POST['valor_observacao'] ?? [];
             $valores = [];
             foreach ($valorDescs as $i => $descricaoValor) {
                 $descricaoValor = trim(strip_tags($descricaoValor));
                 $valorItem = trim(strip_tags($valorNums[$i] ?? ''));
-                if ($descricaoValor === '' && $valorItem === '') continue;
+                $quantidade = trim(strip_tags($valorQuantidades[$i] ?? ''));
+                $observacao = trim(strip_tags($valorObservacoes[$i] ?? ''));
+                if ($descricaoValor === '' && $valorItem === '' && $quantidade === '' && $observacao === '') continue;
                 $valores[] = [
                     'descricao' => substr($descricaoValor, 0, 255),
                     'valor' => substr($valorItem, 0, 40),
+                    'quantidade' => substr($quantidade, 0, 80),
+                    'observacao' => $observacao,
                 ];
             }
             $dados += [
@@ -480,22 +486,22 @@ layout_start('Propostas Comerciais', 'propostas');
 
   <div class="card">
     <div class="card-title">💰 Valor e Dados Fiscais</div>
-    <p style="font-size:13px;color:var(--gray);margin-bottom:14px">Informe cada valor separadamente e descreva claramente a que ele se refere.</p>
+    <p style="font-size:13px;color:var(--gray);margin-bottom:14px">Informe o valor e a quantidade de peças a que ele se refere. Use a observação para explicar a composição do preço e preencha o total manualmente.</p>
     <div id="valor-rows">
       <?php foreach (($d['valores'] ?? []) as $valor): ?>
-      <div class="valor-row frow" style="align-items:end;grid-template-columns:minmax(0,2fr) minmax(160px,1fr) auto;margin-bottom:10px">
+      <div class="valor-row frow" style="align-items:end;grid-template-columns:minmax(0,2fr) minmax(100px,1fr) minmax(140px,1fr) auto;margin-bottom:10px">
         <div class="fg"><label>Descrição do valor</label><input type="text" name="valor_descricao[]" value="<?= e($valor['descricao'] ?? '') ?>" placeholder="Ex: Fabricação das estruturas"></div>
+        <div class="fg"><label>Quantidade</label><input type="text" name="valor_quantidade[]" value="<?= e($valor['quantidade'] ?? '') ?>" placeholder="Ex: 10 peças"></div>
         <div class="fg"><label>Valor (R$)</label><input type="text" class="valor-money" name="valor_item[]" value="<?= e($valor['valor'] ?? '') ?>" placeholder="Ex: 18.500,00" inputmode="decimal"></div>
         <button type="button" class="btn btn-danger btn-sm remove-row" style="margin-bottom:14px">Remover</button>
+        <div class="fg" style="grid-column:1 / -1"><label>Observação do valor</label><textarea name="valor_observacao[]" rows="2" placeholder="Ex: Valor referente ao lote de 10 peças"><?= e($valor['observacao'] ?? '') ?></textarea></div>
       </div>
       <?php endforeach ?>
     </div>
     <button type="button" id="add-valor" class="btn btn-ghost btn-sm">+ Adicionar valor</button>
-    <div style="display:flex;justify-content:flex-end;align-items:center;gap:14px;margin:16px 0 22px;padding:14px 16px;border:1px solid rgba(255,255,255,.08);border-radius:8px">
-      <span style="font-size:12px;color:var(--gray);text-transform:uppercase;letter-spacing:.7px">Total calculado</span>
-      <strong id="valor-total-preview" style="font-size:18px;color:var(--orange)">R$ 0,00</strong>
+    <div class="fg" style="margin-top:16px"><label>Valor total da proposta (R$)</label>
+      <input type="text" name="valor_total" id="valor_total" value="<?= $v('valor_total') ?>" placeholder="Informe o valor total" inputmode="decimal">
     </div>
-    <input type="hidden" name="valor_total" id="valor_total" value="<?= $v('valor_total') ?>">
     <div class="fg"><label>Observação fiscal</label>
       <textarea name="obs_fiscal"><?= $v('obs_fiscal') ?></textarea>
     </div>
@@ -613,10 +619,12 @@ layout_start('Propostas Comerciais', 'propostas');
 </template>
 
 <template id="tpl-valor">
-  <div class="valor-row frow" style="align-items:end;grid-template-columns:minmax(0,2fr) minmax(160px,1fr) auto;margin-bottom:10px">
+  <div class="valor-row frow" style="align-items:end;grid-template-columns:minmax(0,2fr) minmax(100px,1fr) minmax(140px,1fr) auto;margin-bottom:10px">
     <div class="fg"><label>Descrição do valor</label><input type="text" name="valor_descricao[]" placeholder="Ex: Montagem em campo"></div>
+    <div class="fg"><label>Quantidade</label><input type="text" name="valor_quantidade[]" placeholder="Ex: 10 peças"></div>
     <div class="fg"><label>Valor (R$)</label><input type="text" class="valor-money" name="valor_item[]" placeholder="Ex: 8.750,00" inputmode="decimal"></div>
     <button type="button" class="btn btn-danger btn-sm remove-row" style="margin-bottom:14px">Remover</button>
+    <div class="fg" style="grid-column:1 / -1"><label>Observação do valor</label><textarea name="valor_observacao[]" rows="2" placeholder="Ex: Valor referente ao lote de 10 peças"></textarea></div>
   </div>
 </template>
 
@@ -628,25 +636,8 @@ document.getElementById('add-escopo')?.addEventListener('click', () => {
 document.getElementById('add-valor')?.addEventListener('click', () => {
   const tpl = document.getElementById('tpl-valor').content.cloneNode(true);
   document.getElementById('valor-rows').appendChild(tpl);
-  updateValorTotal();
 });
 
-function parseValorBR(value) {
-  const clean = String(value || '').replace(/[^\d,.-]/g, '').replace(/\.(?=.*\.)/g, '');
-  const normalized = clean.includes(',') ? clean.replace(/\./g, '').replace(',', '.') : clean;
-  const number = Number.parseFloat(normalized);
-  return Number.isFinite(number) ? number : 0;
-}
-function updateValorTotal() {
-  const total = [...document.querySelectorAll('.valor-money')].reduce((sum, input) => sum + parseValorBR(input.value), 0);
-  const formatted = total.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const preview = document.getElementById('valor-total-preview');
-  const hidden = document.getElementById('valor_total');
-  if (preview) preview.textContent = `R$ ${formatted}`;
-  if (hidden) hidden.value = formatted;
-}
-document.getElementById('valor-rows')?.addEventListener('input', updateValorTotal);
-updateValorTotal();
 document.getElementById('add-item')?.addEventListener('click', () => {
   const tpl = document.getElementById('tpl-item').content.cloneNode(true);
   document.getElementById('itens-rows').appendChild(tpl);
@@ -654,7 +645,6 @@ document.getElementById('add-item')?.addEventListener('click', () => {
 document.addEventListener('click', e => {
   if (e.target.classList.contains('remove-row')) {
     e.target.closest('.escopo-row, .item-row, .valor-row')?.remove();
-    updateValorTotal();
   }
 });
 </script>

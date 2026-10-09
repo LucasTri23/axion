@@ -5,12 +5,13 @@
  */
 
 $NAV = [
-    'index'    => ['📊', 'Dashboard',       'index.php'],
-    'quotes'   => ['📋', 'Pedidos',         'quotes.php'],
-    'propostas'=> ['📄', 'Propostas',       'propostas.php'],
-    'content'  => ['✏️', 'Editar Textos',   'content.php'],
-    'images'   => ['🖼️', 'Editar Imagens',  'images.php'],
-    'settings' => ['⚙️', 'Configurações',   'settings.php'],
+    'index'      => ['📊', 'Dashboard',       'index.php'],
+    'quotes'     => ['📋', 'Pedidos',         'quotes.php'],
+    'propostas'  => ['📄', 'Propostas',       'propostas.php'],
+    'financeiro' => ['💰', 'Financeiro',      'financeiro.php'],
+    'content'    => ['✏️', 'Editar Textos',   'content.php'],
+    'images'     => ['🖼️', 'Editar Imagens',  'images.php'],
+    'settings'   => ['⚙️', 'Configurações',   'settings.php'],
 ];
 
 function navBadge(): int {
@@ -136,6 +137,21 @@ tbody td{padding:13px 14px;vertical-align:middle}
 .detail-grid{display:grid;grid-template-columns:140px 1fr;gap:8px 12px;font-size:13.5px}
 .detail-grid dt{color:var(--gray);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.3px;padding-top:2px}
 .detail-box{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:8px;padding:12px 14px;color:var(--gray2);line-height:1.7;font-size:13.5px;margin-top:6px}
+/* Financeiro */
+.money-in{color:var(--green);font-weight:600}
+.money-out{color:var(--red);font-weight:600}
+.hbar-row{display:grid;grid-template-columns:150px 1fr 100px;align-items:center;gap:10px;padding:6px 0}
+.hbar-row .lbl{font-size:12.5px;color:var(--gray2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hbar-track{height:9px;background:rgba(255,255,255,.06);border-radius:5px;overflow:hidden}
+.hbar-fill{height:100%;border-radius:5px}
+.hbar-row .val{font-size:12px;text-align:right;color:var(--gray2)}
+details.add-form{margin-bottom:18px}
+details.add-form>summary{cursor:pointer;list-style:none}
+details.add-form>summary::-webkit-details-marker{display:none}
+details.add-form>summary .btn{pointer-events:none}
+.mono{font-variant-numeric:tabular-nums}
+.text-muted{color:var(--gray);font-size:12px}
+
 /* Responsive */
 @media(max-width:900px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.frow{grid-template-columns:1fr}}
 @media(max-width:680px){.sidebar{width:58px}.nav-item span:not(.nav-icon){display:none}.sb-badge{display:none}.sb-head img{height:26px}}

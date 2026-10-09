@@ -6,6 +6,12 @@ Options -Indexes
     Require all denied
 </FilesMatch>
 
+# Bloquear acesso direto à carga inicial do Financeiro após usar uma vez
+<Files "import_financeiro.php">
+    # Remova o comentário abaixo depois de rodar a importação:
+    # Require all denied
+</Files>
+
 # Apenas arquivos .php permitidos (sem .html, .txt, etc.)
 <FilesMatch "\.(html|txt|json|log|sql)$">
     Require all denied
