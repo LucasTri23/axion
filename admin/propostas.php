@@ -245,7 +245,14 @@ layout_start('Propostas Comerciais', 'propostas');
 ?>
 
 <style>
+.propostas-filtros{display:grid;grid-template-columns:minmax(0,2fr) minmax(180px,1fr) auto;gap:14px;align-items:end;margin-bottom:12px}
+.propostas-filtros .fg{margin-bottom:0}
+.propostas-filtros-acoes{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding-bottom:4px}
+@media(max-width:900px){.propostas-filtros{grid-template-columns:1fr}.propostas-filtros-acoes{padding-bottom:0}}
 .valor-row textarea { min-height: 120px; line-height: 1.6; }
+.text-format-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:3px 0}
+.text-format-tools .format-help{font-size:12px;color:var(--gray);line-height:1.4}
+.text-format-tools button{font-weight:700}
 @media (max-width: 760px) {
   .valor-row { grid-template-columns: 1fr !important; align-items: stretch !important; }
   .valor-row .remove-row { margin-bottom: 14px !important; justify-self: start; }
@@ -263,7 +270,25 @@ layout_start('Propostas Comerciais', 'propostas');
 <?php endif ?>
 
 <?php if ($modo === 'lista'):
-    $lista = $db->query("SELECT id, tipo, numero, cliente_nome, objeto, data_proposta, updated_at FROM propostas ORDER BY updated_at DESC")->fetchAll();
+    $busca = trim(is_string($_GET['q'] ?? null) ? $_GET['q'] : '');
+    $padraoFiltro = is_string($_GET['padrao'] ?? null) ? $_GET['padrao'] : '';
+    if (!in_array($padraoFiltro, ['grande', 'pequena'], true)) $padraoFiltro = '';
+    $sql = 'SELECT id, tipo, numero, cliente_nome, objeto, data_proposta, updated_at FROM propostas';
+    $where = [];
+    $params = [];
+    if ($busca !== '') {
+        $where[] = '(LOCATE(?, cliente_nome) > 0 OR LOCATE(?, numero) > 0 OR LOCATE(?, objeto) > 0)';
+        array_push($params, $busca, $busca, $busca);
+    }
+    if ($padraoFiltro !== '') {
+        $where[] = 'tipo = ?';
+        $params[] = $padraoFiltro;
+    }
+    if ($where) $sql .= ' WHERE ' . implode(' AND ', $where);
+    $sql .= ' ORDER BY updated_at DESC';
+    $stmt = $db->prepare($sql);
+    $stmt->execute($params);
+    $lista = $stmt->fetchAll();
 ?>
 
 <div class="alert alert-info">
@@ -278,8 +303,29 @@ layout_start('Propostas Comerciais', 'propostas');
 
 <div class="card">
   <div class="card-title">📑 Propostas Salvas</div>
+  <form method="GET" action="/admin/propostas.php" class="propostas-filtros" role="search">
+    <div class="fg">
+      <label for="proposta-busca">Pesquisar propostas</label>
+      <input id="proposta-busca" type="search" name="q" value="<?= e($busca) ?>" placeholder="Cliente, número ou descrição do orçamento">
+    </div>
+    <div class="fg">
+      <label for="proposta-padrao">Padrão da proposta</label>
+      <select id="proposta-padrao" name="padrao">
+        <option value="">Todos</option>
+        <option value="grande" <?= $padraoFiltro === 'grande' ? 'selected' : '' ?>>Técnica (Grande)</option>
+        <option value="pequena" <?= $padraoFiltro === 'pequena' ? 'selected' : '' ?>>Comercial (Pequena)</option>
+      </select>
+    </div>
+    <div class="propostas-filtros-acoes">
+      <button type="submit" class="btn btn-primary btn-sm">Pesquisar</button>
+      <?php if ($busca !== '' || $padraoFiltro !== ''): ?>
+        <a href="/admin/propostas.php" class="btn btn-ghost btn-sm">Limpar filtros</a>
+      <?php endif ?>
+    </div>
+  </form>
+  <p style="font-size:13px;color:var(--gray);margin-bottom:16px"><?= count($lista) ?> proposta(s) encontrada(s).</p>
   <?php if (!$lista): ?>
-    <div class="empty"><div class="empty-icon">📭</div><p>Nenhuma proposta criada ainda.</p></div>
+    <div class="empty"><div class="empty-icon">📭</div><p><?= $busca !== '' || $padraoFiltro !== '' ? 'Nenhuma proposta encontrada para esses filtros.' : 'Nenhuma proposta criada ainda.' ?></p></div>
   <?php else: ?>
     <table>
       <thead><tr>

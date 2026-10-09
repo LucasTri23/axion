@@ -24,12 +24,17 @@ if ($p['data_proposta']) {
     $dataExtenso = date('d', $ts) . ' de ' . $MESES[(int)date('n', $ts)] . ' de ' . date('Y', $ts);
 }
 
+// Escape antes de aplicar a marcação; HTML digitado nunca é executado.
+function proposalText(string $text): string {
+    return preg_replace('/\*\*([^\r\n]+?)\*\*/u', '<strong>$1</strong>', e($text));
+}
+
 function bullets(string $text): string {
     $out = '';
     foreach (preg_split('/\r?\n/', $text) as $line) {
         $line = trim($line);
         if ($line === '') continue;
-        $out .= '<li>' . e($line) . "</li>\n";
+        $out .= '<li>' . proposalText($line) . "</li>\n";
     }
     return $out;
 }
@@ -38,13 +43,13 @@ function paragraphs(string $text): string {
     foreach (preg_split('/\r?\n/', $text) as $line) {
         $line = trim($line);
         if ($line === '') continue;
-        $out .= '<p>' . e($line) . "</p>\n";
+        $out .= '<p>' . proposalText($line) . "</p>\n";
     }
     return $out;
 }
 function materialLabel(string $m, string $obs): string {
     if ($m === 'cliente') return 'O material será fornecido pelo CONTRATANTE.';
-    if ($m === 'outro')   return $obs !== '' ? e($obs) : 'A definir entre as partes.';
+    if ($m === 'outro')   return $obs !== '' ? proposalText($obs) : 'A definir entre as partes.';
     return 'O material será fornecido pela AXION INDUSTRIAL LTDA.';
 }
 
@@ -136,11 +141,37 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 .sign{padding-top:18px;border-top:1px solid var(--corp-line)}
 .sign b{color:var(--corp-navy)}
 .footer-bar{border-top:2px solid var(--corp-orange);font-size:9.5px;color:var(--corp-muted)}
+.proposal-meta{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:20px;padding:16px 0;border-bottom:1px solid var(--corp-line)}
+.proposal-meta span{display:block;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--corp-muted);margin-bottom:3px}
+.proposal-meta b{font-size:12px;font-weight:600}
 @media print{
-  .sheet{padding:0 12mm 10mm;overflow:visible}
-  .brand-header{margin:0 -12mm 8mm;padding:8mm 12mm 6mm;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  body{background:#fff}
+  .sheet{padding:0 0 8mm;overflow:visible;margin:0;box-shadow:none}
+  h1.title,h2.sec,h3.sub{break-after:avoid}
+  table.data-tbl,table.info-tbl{break-inside:auto}
+  table.data-tbl tr,table.info-tbl tr{break-inside:avoid}
   h2.sec,table.data-tbl th,.money-total{-webkit-print-color-adjust:exact;print-color-adjust:exact}
-  @page{size:A4;margin:0 10mm 10mm}
+  /* A marca ocupa a margem superior somente a partir da segunda página. */
+  @page {
+    size:A4;
+    margin:32mm 16mm 0;
+    @top-center {
+      content:"axionindustrial";
+      background:url('/img/logo.png') center 5mm / 16mm 16mm no-repeat;
+      vertical-align:bottom;
+      padding-bottom:4mm;
+      font-family:'Segoe UI',Arial,sans-serif;
+      font-size:9pt;
+      font-weight:600;
+      color:#07111f;
+      -webkit-print-color-adjust:exact;
+      print-color-adjust:exact;
+    }
+  }
+  @page :first {
+    margin-top:0;
+    @top-center { content:none; background:none; }
+  }
 }
 </style>
 <script src="/js/admin-proposta-imprimir.js" defer></script>
@@ -155,17 +186,11 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 
 <div class="sheet">
 
-  <header class="brand-header">
-    <div class="brand-top">
-      <img src="/img/logo.png" class="brand-logo" alt="Axion Industrial">
-      <div class="doc-kind">Documento comercial<strong><?= $tipo === 'grande' ? 'Proposta Técnica' : 'Proposta Comercial' ?></strong></div>
-    </div>
-    <div class="brand-meta">
-      <div><span>Cliente</span><b><?= e($p['cliente_nome']) ?></b></div>
-      <div><span>Proposta</span><b><?= e($p['numero'] ?: 'Em elaboração') ?> / Rev. <?= e($p['revisao'] ?: '00') ?></b></div>
-      <div><span>Emissão</span><b><?= e($dataFmt ?: 'Não informada') ?></b></div>
-    </div>
-  </header>
+      <div class="proposal-meta">
+        <div><span>Cliente</span><b><?= e($p['cliente_nome']) ?></b></div>
+        <div><span>Proposta</span><b><?= e($p['numero'] ?: 'Em elaboração') ?> / Rev. <?= e($p['revisao'] ?: '00') ?></b></div>
+        <div><span>Emissão</span><b><?= e($dataFmt ?: 'Não informada') ?></b></div>
+      </div>
 
 <?php if ($tipo === 'grande'): ?>
 
@@ -289,7 +314,7 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
   <table class="data-tbl">
     <tr><th>Descrição</th><th>Desenho</th><th>Posição</th></tr>
     <?php foreach ($g('itens', []) as $item): ?>
-      <tr><td><?= e($item['descricao']) ?></td><td><?= e($item['desenho']) ?></td><td><?= e($item['posicao']) ?></td></tr>
+      <tr><td><?= proposalText($item['descricao']) ?></td><td><?= e($item['desenho']) ?></td><td><?= e($item['posicao']) ?></td></tr>
     <?php endforeach ?>
   </table>
   <p><b>O fornecimento contempla:</b></p>
@@ -308,7 +333,7 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
       <tbody>
       <?php foreach ($valores as $valor): ?>
         <tr>
-          <td><?= e($valor['descricao'] ?: 'Item comercial') ?><?php if (trim($valor['observacao'] ?? '')): ?><div class="money-observation"><b>Observação:</b> <?= nl2br(e($valor['observacao'])) ?></div><?php endif ?></td>
+          <td><?= proposalText($valor['descricao'] ?: 'Item comercial') ?><?php if (trim($valor['observacao'] ?? '')): ?><div class="money-observation"><b>Observação:</b> <?= nl2br(proposalText($valor['observacao'])) ?></div><?php endif ?></td>
           <td><?= e($valor['quantidade'] ?? '') ?: '—' ?></td>
           <td>R$ <?= e($valor['valor'] ?: '—') ?></td>
         </tr>
@@ -317,7 +342,7 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
     </table>
   <?php endif ?>
   <div class="money-total"><span>Valor total da proposta</span><strong>R$ <?= e($g('valor_total') ?: '—') ?></strong></div>
-  <p><b>Observação fiscal:</b> <?= e($g('obs_fiscal')) ?></p>
+  <p><b>Observação fiscal:</b> <?= nl2br(proposalText($g('obs_fiscal'))) ?></p>
 
   <h3 class="sub">3.1. Dados Fiscais para Emissão de Nota</h3>
   <table class="data-tbl">
@@ -329,10 +354,10 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 
   <h2 class="sec">4. Condições Comerciais</h2>
   <table class="data-tbl">
-    <tr><th style="width:220px">Condição de pagamento</th><td><?= e($g('condicao_pagamento')) ?></td></tr>
-    <tr><th>Prazo de entrega</th><td><?= nl2br(e($g('prazo_entrega'))) ?></td></tr>
-    <tr><th>Frete</th><td><?= e($g('frete')) ?></td></tr>
-    <tr><th>Validade da proposta</th><td><?= e($g('validade')) ?></td></tr>
+    <tr><th style="width:220px">Condição de pagamento</th><td><?= nl2br(proposalText($g('condicao_pagamento'))) ?></td></tr>
+    <tr><th>Prazo de entrega</th><td><?= nl2br(proposalText($g('prazo_entrega'))) ?></td></tr>
+    <tr><th>Frete</th><td><?= proposalText($g('frete')) ?></td></tr>
+    <tr><th>Validade da proposta</th><td><?= proposalText($g('validade')) ?></td></tr>
     <tr><th>Fornecimento de material</th><td><?= materialLabel($g('material','axion'), $g('material_obs')) ?></td></tr>
   </table>
 
@@ -359,6 +384,7 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
   <div class="footer-bar">AXION INDUSTRIAL LTDA &nbsp;·&nbsp; Contatos: (31) 97191-9658 &nbsp;|&nbsp; (31) 97159-4583</div>
 
 <?php endif ?>
+
 
 </div>
 </body>
