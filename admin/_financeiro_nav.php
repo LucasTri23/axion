@@ -6,6 +6,7 @@
 $FIN_TABS = [
     'geral' => ['Visão geral',       'financeiro.php'],
     'fluxo' => ['Fluxo de caixa',    'financeiro_fluxo.php'],
+    'contas' => ['Contas a pagar / receber', 'financeiro_contas.php'],
     'obras' => ['Custo por obra',    'financeiro_obras.php'],
     'jato'  => ['Jato e pintura',    'financeiro_jato.php'],
     'folha' => ['Folha de pagamento','financeiro_folha.php'],

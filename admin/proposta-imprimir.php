@@ -141,12 +141,10 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 .sign{padding-top:18px;border-top:1px solid var(--corp-line)}
 .sign b{color:var(--corp-navy)}
 .footer-bar{border-top:2px solid var(--corp-orange);font-size:9.5px;color:var(--corp-muted)}
-.proposal-meta{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:20px;padding:16px 0;border-bottom:1px solid var(--corp-line)}
-.proposal-meta span{display:block;font-size:9px;letter-spacing:1px;text-transform:uppercase;color:var(--corp-muted);margin-bottom:3px}
-.proposal-meta b{font-size:12px;font-weight:600}
 @media print{
   body{background:#fff}
   .sheet{padding:0 0 8mm;overflow:visible;margin:0;box-shadow:none}
+  .brand-header{margin:0 -6mm 8mm;padding:8mm 6mm 6mm;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
   h1.title,h2.sec,h3.sub{break-after:avoid}
   table.data-tbl,table.info-tbl{break-inside:auto}
   table.data-tbl tr,table.info-tbl tr{break-inside:avoid}
@@ -186,11 +184,17 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 
 <div class="sheet">
 
-      <div class="proposal-meta">
-        <div><span>Cliente</span><b><?= e($p['cliente_nome']) ?></b></div>
-        <div><span>Proposta</span><b><?= e($p['numero'] ?: 'Em elaboração') ?> / Rev. <?= e($p['revisao'] ?: '00') ?></b></div>
-        <div><span>Emissão</span><b><?= e($dataFmt ?: 'Não informada') ?></b></div>
-      </div>
+  <header class="brand-header">
+    <div class="brand-top">
+      <img src="/img/logo.png" class="brand-logo" alt="Axion Industrial">
+      <div class="doc-kind">Documento comercial<strong><?= $tipo === 'grande' ? 'Proposta Técnica' : 'Proposta Comercial' ?></strong></div>
+    </div>
+    <div class="brand-meta">
+      <div><span>Cliente</span><b><?= e($p['cliente_nome']) ?></b></div>
+      <div><span>Proposta</span><b><?= e($p['numero'] ?: 'Em elaboração') ?> / Rev. <?= e($p['revisao'] ?: '00') ?></b></div>
+      <div><span>Emissão</span><b><?= e($dataFmt ?: 'Não informada') ?></b></div>
+    </div>
+  </header>
 
 <?php if ($tipo === 'grande'): ?>
 
@@ -231,7 +235,7 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
     <div class="escopo-block">
       <h3 class="sub">3.<?= $n++ ?> <?= e($item['titulo']) ?></h3>
       <ul>
-        <li><b>Valor:</b> <?= e($item['valor']) ?></li>
+        <li><b>Valor:</b> <?= proposalText($item['valor']) ?></li>
         <?= bullets($item['corpo']) ?>
       </ul>
     </div>
@@ -256,7 +260,7 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
   <p>Os valores dos serviços serão apurados conforme abaixo:</p>
   <ul>
     <?php foreach ($g('escopo', []) as $item): ?>
-      <li><?= e($item['titulo']) ?>: <?= e($item['valor']) ?></li>
+      <li><?= e($item['titulo']) ?>: <?= proposalText($item['valor']) ?></li>
     <?php endforeach ?>
   </ul>
   <p>A medição será realizada com base em ticket de balança ou boletim de medição, conforme o tipo de serviço.</p>
@@ -335,13 +339,13 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
         <tr>
           <td><?= proposalText($valor['descricao'] ?: 'Item comercial') ?><?php if (trim($valor['observacao'] ?? '')): ?><div class="money-observation"><b>Observação:</b> <?= nl2br(proposalText($valor['observacao'])) ?></div><?php endif ?></td>
           <td><?= e($valor['quantidade'] ?? '') ?: '—' ?></td>
-          <td>R$ <?= e($valor['valor'] ?: '—') ?></td>
+          <td>R$ <?= proposalText($valor['valor'] ?: '—') ?></td>
         </tr>
       <?php endforeach ?>
       </tbody>
     </table>
   <?php endif ?>
-  <div class="money-total"><span>Valor total da proposta</span><strong>R$ <?= e($g('valor_total') ?: '—') ?></strong></div>
+  <div class="money-total"><span>Valor total da proposta</span><strong>R$ <?= proposalText($g('valor_total') ?: '—') ?></strong></div>
   <p><b>Observação fiscal:</b> <?= nl2br(proposalText($g('obs_fiscal'))) ?></p>
 
   <h3 class="sub">3.1. Dados Fiscais para Emissão de Nota</h3>

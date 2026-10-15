@@ -71,6 +71,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         redirect('/admin/financeiro_obras.php?obra_id=' . $obraId . '&saved=1');
     }
 
+    if ($action === 'edit_custo') {
+        $id = (int)($_POST['id'] ?? 0);
+        $obraId = (int)($_POST['obra_id'] ?? 0);
+        $categoria = $_POST['categoria'] ?? '';
+        $descricao = trim($_POST['descricao'] ?? '');
+        $valor = toFloat($_POST['valor'] ?? '0');
+        $data = $_POST['data'] ?? '';
+        $parsed = $data === '' ? null : DateTimeImmutable::createFromFormat('!Y-m-d', $data);
+        $stmt = $db->prepare('SELECT id FROM centro_custos_obra WHERE id=? AND obra_id=?');
+        $stmt->execute([$id, $obraId]);
+        if ($stmt->fetchColumn() && isset($CATEGORIAS[$categoria]) && is_finite($valor) && $valor >= 0 && $valor <= 9999999999.99 && preg_match('/^.{0,255}$/us', $descricao) && ($data === '' || ($parsed && $parsed->format('Y-m-d') === $data))) {
+            $db->prepare('UPDATE centro_custos_obra SET categoria=?, descricao=?, valor=?, data=? WHERE id=? AND obra_id=?')
+               ->execute([$categoria, $descricao, $valor, $data ?: null, $id, $obraId]);
+            auditLog('update', 'centro_custos_obra', $id, compact('categoria', 'descricao', 'valor', 'data'));
+            redirect('/admin/financeiro_obras.php?obra_id=' . $obraId . '&saved=1');
+        }
+        redirect('/admin/financeiro_obras.php?obra_id=' . $obraId . '&err=dados_invalidos');
+    }
+
     if ($action === 'delete_custo') {
         $id     = (int)($_POST['id'] ?? 0);
         $obraId = (int)($_POST['obra_id'] ?? 0);
@@ -92,6 +111,7 @@ require __DIR__ . '/_financeiro_nav.php';
 
 <?php if (isset($_GET['saved'])): ?><div class="alert alert-success">✔ Salvo com sucesso.</div><?php endif ?>
 <?php if (isset($_GET['deleted'])): ?><div class="alert alert-success">🗑 Excluído com sucesso.</div><?php endif ?>
+<?php if (($_GET['err'] ?? '') === 'dados_invalidos'): ?><div class="alert alert-error">Confira os dados do custo. A alteração não foi salva.</div><?php endif ?>
 
 <?php
 $obraId = (int)($_GET['obra_id'] ?? 0);
@@ -156,6 +176,20 @@ if ($obraId > 0):
               <td style="font-size:12.5px;color:var(--gray)"><?= e($c['data'] ? date('d/m/Y', strtotime($c['data'])) : '—') ?></td>
               <td class="mono" style="text-align:right"><?= e(brl($c['valor'])) ?></td>
               <td>
+                <details>
+                  <summary class="btn btn-secondary btn-sm">✏️ Editar custo</summary>
+                  <form method="POST" class="frow" style="margin:12px 0">
+                    <?= csrfField() ?>
+                    <input type="hidden" name="action" value="edit_custo">
+                    <input type="hidden" name="id" value="<?= (int)$c['id'] ?>">
+                    <input type="hidden" name="obra_id" value="<?= (int)$obraId ?>">
+                    <div class="fg"><label>Categoria</label><select name="categoria"><?php foreach ($CATEGORIAS as $key => $label): ?><option value="<?= e($key) ?>" <?= $c['categoria'] === $key ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach ?></select></div>
+                    <div class="fg"><label>Descrição</label><input type="text" name="descricao" maxlength="255" value="<?= e($c['descricao']) ?>"></div>
+                    <div class="fg"><label>Valor (R$)</label><input type="number" name="valor" min="0" step="0.01" value="<?= e($c['valor']) ?>" required></div>
+                    <div class="fg"><label>Data</label><input type="date" name="data" value="<?= e($c['data'] ?? '') ?>"></div>
+                    <div class="fg"><button type="submit" class="btn btn-primary btn-sm">Salvar custo</button></div>
+                  </form>
+                </details>
                 <form method="POST" onsubmit="return confirm('Excluir este custo?')">
                   <?= csrfField() ?>
                   <input type="hidden" name="action" value="delete_custo">
@@ -210,7 +244,7 @@ if ($obraId > 0):
             <div class="mono" style="font-size:20px;margin:10px 0"><?= e(brl($o['total'])) ?></div>
             <div style="display:flex;gap:8px;flex-wrap:wrap">
               <a href="/admin/financeiro_obras.php?obra_id=<?= (int)$o['id'] ?>" class="btn btn-secondary btn-sm">Ver custos</a>
-              <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('<?= $fid ?>').hidden=!document.getElementById('<?= $fid ?>').hidden">✏️ Editar</button>
+              <a class="btn btn-secondary btn-sm" href="/admin/financeiro_obras.php?edit_obra=<?= (int)$o['id'] ?>#<?= $fid ?>">✏️ Editar</a>
               <form method="POST" onsubmit="return confirm('Excluir esta obra e todos os custos lançados nela?')">
                 <?= csrfField() ?>
                 <input type="hidden" name="action" value="delete_obra">
@@ -218,7 +252,8 @@ if ($obraId > 0):
                 <button type="submit" class="btn btn-danger btn-sm">🗑</button>
               </form>
             </div>
-            <form method="POST" id="<?= $fid ?>" hidden style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
+            <?php if ((int)($_GET['edit_obra'] ?? 0) === (int)$o['id']): ?>
+            <form method="POST" id="<?= $fid ?>" style="margin-top:12px;display:flex;flex-direction:column;gap:8px">
               <?= csrfField() ?>
               <input type="hidden" name="action" value="edit_obra">
               <input type="hidden" name="id" value="<?= (int)$o['id'] ?>">
@@ -233,7 +268,9 @@ if ($obraId > 0):
                 </select>
               </div>
               <button type="submit" class="btn btn-primary btn-sm">💾 Salvar</button>
+              <a href="/admin/financeiro_obras.php" class="btn btn-ghost btn-sm">Cancelar</a>
             </form>
+            <?php endif ?>
           </div>
         <?php endforeach ?>
       </div>

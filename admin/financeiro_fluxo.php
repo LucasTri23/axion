@@ -4,6 +4,7 @@
  */
 require_once __DIR__ . '/_auth.php';
 require_once __DIR__ . '/_layout.php';
+require_once __DIR__ . '/_financeiro_filtros.php';
 
 $db = db();
 const FLUXO_PAGE_SIZE = 50;
@@ -18,8 +19,8 @@ function lancamentoFromPost(array $p): array {
         'nfe'                => trim($p['nfe'] ?? ''),
         'cliente_fornecedor' => trim($p['cliente_fornecedor'] ?? ''),
         'parcela'            => trim($p['parcela'] ?? ''),
-        'data_lancamento'    => $p['data_lancamento'] ?: null,
-        'vencimento'         => $p['vencimento'] ?: null,
+        'data_lancamento'    => ($p['data_lancamento'] ?? '') ?: null,
+        'vencimento'         => ($p['vencimento'] ?? '') ?: null,
         'valor_entrada'      => $tipo === 'ENTRADA' ? $valor : 0,
         'valor_saida'        => $tipo === 'SAIDA' ? $valor : 0,
         'situacao'           => trim($p['situacao'] ?? ''),
@@ -44,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )->execute(array_values($d));
             auditLog('create', 'centro_lancamentos', (int)$db->lastInsertId(), $d);
         }
-        redirect('/admin/financeiro_fluxo.php?saved=1');
+        redirect('/admin/financeiro_fluxo.php?' . financeiroQuery(financeiroFiltros($_GET), ['saved' => 1]));
     }
 
     if ($action === 'edit') {
@@ -59,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             )->execute(array_merge(array_values($d), [$id]));
             auditLog('update', 'centro_lancamentos', $id, $d);
         }
-        redirect('/admin/financeiro_fluxo.php?saved=1');
+        redirect('/admin/financeiro_fluxo.php?' . financeiroQuery(financeiroFiltros($_GET), ['saved' => 1]));
     }
 
     if ($action === 'delete') {
@@ -71,30 +72,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $db->prepare('DELETE FROM centro_lancamentos WHERE id=?')->execute([$id]);
             auditLog('delete', 'centro_lancamentos', $id, $old ?: []);
         }
-        redirect('/admin/financeiro_fluxo.php?deleted=1');
+        redirect('/admin/financeiro_fluxo.php?' . financeiroQuery(financeiroFiltros($_GET), ['deleted' => 1]));
     }
 }
 
 // ── Filtros ──────────────────────────────────────────────────────
-$fTipo   = $_GET['tipo']   ?? '';
-$fCentro = $_GET['centro'] ?? '';
-$fDe     = $_GET['de']     ?? '';
-$fAte    = $_GET['ate']    ?? '';
-$fQ      = trim($_GET['q'] ?? '');
+$filters = financeiroFiltros($_GET);
+if ($filters['base'] === '') $filters['base'] = 'vencimento';
+$fTipo = $filters['tipo']; $fCentro = $filters['centro'];
+$fDe = $filters['de']; $fAte = $filters['ate']; $fQ = $filters['q'];
+$fMes = $filters['mes']; $fOs = $filters['os'];
 $page    = max(1, (int)($_GET['page'] ?? 1));
 
-$where  = [];
-$params = [];
-if (in_array($fTipo, ['ENTRADA', 'SAIDA'], true)) { $where[] = 'tipo = ?'; $params[] = $fTipo; }
-if ($fCentro !== '') { $where[] = 'centro = ?'; $params[] = $fCentro; }
-if ($fDe !== '')  { $where[] = 'data_lancamento >= ?'; $params[] = $fDe . '-01'; }
-if ($fAte !== '') { $where[] = "data_lancamento <= LAST_DAY(?)"; $params[] = $fAte . '-01'; }
-if ($fQ !== '') {
-    $where[] = '(descricao LIKE ? OR cliente_fornecedor LIKE ? OR nfe LIKE ? OR os LIKE ? OR observacao LIKE ?)';
-    $like = '%' . $fQ . '%';
-    array_push($params, $like, $like, $like, $like, $like);
-}
-$whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
+$dateColumn = $filters['base'] === 'emissao' ? 'data_lancamento' : 'COALESCE(vencimento, data_lancamento)';
+[$whereSql, $params] = financeiroWhere($filters, $dateColumn);
+$obrasFiltro = financeiroObras($db);
 
 $totals = $db->prepare("SELECT COALESCE(SUM(valor_entrada),0) e, COALESCE(SUM(valor_saida),0) s, COUNT(*) c FROM centro_lancamentos $whereSql");
 $totals->execute($params);
@@ -105,7 +97,8 @@ $pages     = max(1, (int)ceil($totalRows / FLUXO_PAGE_SIZE));
 $page      = min($page, $pages);
 $offset    = ($page - 1) * FLUXO_PAGE_SIZE;
 
-$sql = "SELECT * FROM centro_lancamentos $whereSql ORDER BY data_lancamento DESC, id DESC LIMIT " . FLUXO_PAGE_SIZE . " OFFSET $offset";
+$orderSql = financeiroOrdem($filters, 'atual');
+$sql = "SELECT * FROM centro_lancamentos $whereSql ORDER BY $orderSql LIMIT " . FLUXO_PAGE_SIZE . " OFFSET $offset";
 $stmt = $db->prepare($sql);
 $stmt->execute($params);
 $rows = $stmt->fetchAll();
@@ -121,8 +114,8 @@ if (isset($_GET['edit'])) {
 }
 
 function qs(array $over = []): string {
-    $base = ['tipo' => $_GET['tipo'] ?? '', 'centro' => $_GET['centro'] ?? '', 'de' => $_GET['de'] ?? '', 'ate' => $_GET['ate'] ?? '', 'q' => $_GET['q'] ?? ''];
-    return http_build_query(array_filter(array_merge($base, $over), fn($v) => $v !== ''));
+    global $filters;
+    return financeiroQuery($filters, $over);
 }
 
 layout_start('Financeiro — Fluxo de caixa', 'financeiro');
@@ -169,7 +162,7 @@ require __DIR__ . '/_financeiro_nav.php';
       <div class="fg"><label>Vencimento</label><input type="date" name="vencimento" value="<?= e($editRow['vencimento'] ?? '') ?>"></div>
     </div>
     <div class="frow">
-      <div class="fg"><label>OS</label><input type="text" name="os" maxlength="20" value="<?= e($editRow['os'] ?? '') ?>"></div>
+      <div class="fg"><label>OS</label><input type="text" name="os" list="obraList" maxlength="20" value="<?= e($editRow['os'] ?? '') ?>"><datalist id="obraList"><?php foreach ($obrasFiltro as $obra): ?><option value="<?= e($obra['os']) ?>"><?= e($obra['nome']) ?></option><?php endforeach ?></datalist></div>
       <div class="fg"><label>NFe</label><input type="text" name="nfe" maxlength="50" value="<?= e($editRow['nfe'] ?? '') ?>"></div>
     </div>
     <div class="frow">
@@ -177,8 +170,8 @@ require __DIR__ . '/_financeiro_nav.php';
       <div class="fg">
         <label>Situação</label>
         <select name="situacao">
-          <option value="OK" <?= (($editRow['situacao'] ?? 'OK') === 'OK') ? 'selected' : '' ?>>OK</option>
-          <option value=""   <?= (isset($editRow) && $editRow['situacao'] === '') ? 'selected' : '' ?>>Pendente</option>
+          <option value="OK" <?= ($editRow && strtoupper(trim($editRow['situacao'])) === 'OK') ? 'selected' : '' ?>>Pago / recebido</option>
+          <option value="" <?= (!$editRow || strtoupper(trim($editRow['situacao'])) !== 'OK') ? 'selected' : '' ?>>Pendente</option>
         </select>
       </div>
     </div>
@@ -208,12 +201,17 @@ require __DIR__ . '/_financeiro_nav.php';
         <option value="">Todos os centros</option>
         <?php foreach ($centros as $c): ?><option value="<?= e($c) ?>" <?= $fCentro===$c?'selected':'' ?>><?= e($c) ?></option><?php endforeach ?>
       </select>
-      <input type="month" name="de" value="<?= e($fDe) ?>" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 10px;color:#fff;font-size:13px">
-      <span style="color:var(--gray)">–</span>
-      <input type="month" name="ate" value="<?= e($fAte) ?>" style="background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:6px 10px;color:#fff;font-size:13px">
+      <div class="fg"><label>Pesquisar pela data de</label><select name="base"><option value="vencimento" <?= $filters['base'] === 'vencimento' ? 'selected' : '' ?>>Vencimento (ou emissão, se vazio)</option><option value="emissao" <?= $filters['base'] === 'emissao' ? 'selected' : '' ?>>Emissão</option></select></div>
+      <div class="fg"><label>Mês específico</label><input type="month" name="mes" value="<?= e($fMes) ?>"></div>
+      <div class="fg"><label>Obra / OS</label><select name="os"><option value="">Todas as obras</option><?php foreach ($obrasFiltro as $obra): ?><option value="<?= e($obra['os']) ?>" <?= $fOs === $obra['os'] ? 'selected' : '' ?>><?= e($obra['os'] . ' — ' . ($obra['nome'] ?: 'Sem nome')) ?></option><?php endforeach ?></select></div>
+      <details <?= $fDe || $fAte ? 'open' : '' ?>><summary style="cursor:pointer;font-size:13px">Ou pesquisar por intervalo de meses</summary><div class="frow" style="margin-top:8px"><div class="fg"><label>De</label><input type="month" name="de" value="<?= e($fDe) ?>"></div><div class="fg"><label>Até</label><input type="month" name="ate" value="<?= e($fAte) ?>"></div></div></details>
+      <div class="fg"><label>Situação</label><select name="status"><?php foreach (['' => 'Todas', 'pendente' => 'Em aberto', 'quitado' => 'Pagas / recebidas', 'vencido' => 'Vencidas', 'hoje' => 'Vencem hoje', 'proximos' => 'A vencer', 'sem_vencimento' => 'Sem vencimento'] as $key => $label): ?><option value="<?= e($key) ?>" <?= $filters['status'] === $key ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach ?></select></div>
       <button type="submit" class="btn btn-ghost btn-sm">🔍 Filtrar</button>
-      <?php if ($fTipo || $fCentro || $fDe || $fAte || $fQ): ?><a href="/admin/financeiro_fluxo.php" class="btn btn-ghost btn-sm">Limpar</a><?php endif ?>
+      <div class="fg"><label>Ordem cronológica</label><select name="ordem"><?php foreach (['atual' => 'Mês atual → próximos → antigos', 'emissao_asc' => 'Emissão: mais antiga primeiro', 'vencimento_asc' => 'Vencimento: mais antigo primeiro', 'emissao_desc' => 'Emissão: mais recente primeiro', 'vencimento_desc' => 'Vencimento: mais recente primeiro'] as $key => $label): ?><option value="<?= e($key) ?>" <?= ($filters['ordem'] ?: 'atual') === $key ? 'selected' : '' ?>><?= e($label) ?></option><?php endforeach ?></select></div>
+      <a href="/admin/financeiro_fluxo.php" class="btn btn-ghost btn-sm">Limpar filtros</a>
+      <a class="btn btn-secondary btn-sm" href="/admin/financeiro_exportar.php?<?= e(qs(['origem' => 'fluxo'])) ?>">Exportar Excel (.xlsx)</a>
     </form>
+    <p class="text-muted" style="margin-top:12px">Sem escolher mês, a lista começa pelo mês atual, segue pelos próximos meses e deixa os antigos por último. Um mês específico substitui o intervalo. Pela opção vencimento, lançamentos sem vencimento usam a emissão.</p>
   </div>
 
   <?php if (!$rows): ?>
@@ -236,7 +234,7 @@ require __DIR__ . '/_financeiro_nav.php';
             <td style="font-size:12px;color:var(--gray)"><?= e($r['vencimento'] ? date('d/m/Y', strtotime($r['vencimento'])) : '—') ?></td>
             <td class="mono" style="text-align:right"><?= $r['valor_entrada'] > 0 ? '<span class="money-in">'.e(brl($r['valor_entrada'])).'</span>' : '—' ?></td>
             <td class="mono" style="text-align:right"><?= $r['valor_saida'] > 0 ? '<span class="money-out">'.e(brl($r['valor_saida'])).'</span>' : '—' ?></td>
-            <td><?= $r['situacao']==='OK' ? '<span class="badge b-concluido">OK</span>' : '<span class="badge b-andamento">Pendente</span>' ?></td>
+            <td><span class="badge <?= strtoupper(trim($r['situacao'])) === 'OK' ? 'b-concluido' : 'b-andamento' ?>"><?= e(financeiroStatus($r)) ?></span></td>
             <td><span class="badge" style="background:rgba(255,255,255,.06);color:var(--gray2)"><?= e($r['centro']) ?></span></td>
             <td style="white-space:nowrap">
               <a href="/admin/financeiro_fluxo.php?edit=<?= (int)$r['id'] ?>&<?= qs() ?>" class="btn btn-secondary btn-sm">✏️</a>

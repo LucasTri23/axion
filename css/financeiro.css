@@ -1,0 +1,38 @@
+.fin-filters{animation:fin-appear .25s ease-out}
+.fin-segments{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 14px;padding:6px;border:1px solid rgba(255,255,255,.08);background:rgba(0,0,0,.16);border-radius:15px;width:fit-content}
+.fin-segment{display:flex;align-items:center;gap:10px;padding:12px 22px;border-radius:10px;font-size:14px;font-weight:600;color:var(--gray2);transition:background .18s,box-shadow .18s,transform .18s,color .18s}
+.fin-segment span{font-size:19px}
+.fin-segment:hover{background:rgba(255,255,255,.06);transform:translateY(-1px);color:#fff}
+.fin-segment.is-active{background:linear-gradient(125deg,#e8751a,#b44f13);color:#fff;box-shadow:0 4px 16px rgba(232,117,26,.2)}
+.fin-chips{display:flex;flex-wrap:wrap;gap:8px}
+.fin-chip{padding:8px 13px;border:1px solid rgba(255,255,255,.12);border-radius:24px;font-size:12px;color:var(--gray2);transition:background .18s,border-color .18s,transform .18s}
+.fin-chip:hover{transform:translateY(-2px);border-color:var(--sky);color:#fff}
+.fin-chip.is-active{background:rgba(58,175,228,.14);border-color:var(--sky);color:#b9e8ff}
+.fin-filter-fields{padding-top:8px}
+.fin-filter-fields input,.fin-filter-fields select{transition:border-color .18s,box-shadow .18s}
+.fin-filter-fields input:focus,.fin-filter-fields select:focus{box-shadow:0 0 0 3px rgba(58,175,228,.12)}
+.fin-selection{position:sticky;top:0;z-index:5;background:#122139;border:1px solid rgba(58,175,228,.38);border-radius:16px;padding:18px 22px;margin:0 0 22px;box-shadow:0 8px 26px rgba(0,0,0,.24);animation:fin-appear .25s ease-out}
+.fin-selection-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.fin-eyebrow{display:block;color:#8bd1f4;font-size:10px;font-weight:700;letter-spacing:1.5px;margin-bottom:6px}
+.fin-selection h2{font-size:16px;font-weight:600;margin:0}
+[data-selection-count]{display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 7px;margin-left:5px;background:rgba(58,175,228,.18);border-radius:7px;font-size:12px;color:#b9e8ff}
+.fin-selection-totals{display:flex;gap:44px;flex-wrap:wrap;margin:16px 0 12px}
+.fin-selection-totals span{display:block;color:var(--gray2);font-size:12px;margin-bottom:5px}
+.fin-selection-totals strong{font-size:25px;font-variant-numeric:tabular-nums}
+[data-selection-pay]{color:#ffb07b}
+[data-selection-receive]{color:#75dfb0}
+.fin-selection-message{font-size:12px;color:#b9e8ff;min-height:18px;margin-top:8px}
+.fin-selection-details summary{font-size:12px;cursor:pointer;color:#b9e8ff;padding-top:6px}
+.fin-selection-details ul{list-style:none;max-height:180px;overflow:auto;margin-top:10px}
+.fin-selection-details li{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-top:1px solid rgba(255,255,255,.08);font-size:12px}
+.fin-selection-details li span{overflow-wrap:anywhere}
+.fin-table-toolbar{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;margin-bottom:16px;font-size:13px}
+.fin-table-toolbar label{display:flex;align-items:center;gap:9px;cursor:pointer}
+.fin-account-check,[data-selection-page]{width:18px;height:18px;accent-color:var(--orange);cursor:pointer}
+.fin-account-check:disabled{cursor:default;opacity:.35}
+.fin-accounts-table tr{transition:background .18s}
+.fin-accounts-table tr.is-selected{background:rgba(58,175,228,.1)}
+.fin-segment:focus-visible,.fin-chip:focus-visible,.fin-account-check:focus-visible,[data-selection-page]:focus-visible{outline:2px solid var(--sky);outline-offset:4px}
+@keyframes fin-appear{from{opacity:.4;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:680px){.fin-segments{width:100%}.fin-segment{flex:1;justify-content:center;padding:10px 8px;font-size:12px}.fin-selection{padding:14px;position:static}.fin-selection-totals{gap:20px}.fin-selection-totals strong{font-size:21px}}
+@media(prefers-reduced-motion:reduce){.fin-filters,.fin-selection{animation:none}.fin-segment,.fin-chip,.fin-filter-fields input,.fin-filter-fields select,.fin-accounts-table tr{transition:none}.fin-segment:hover,.fin-chip:hover{transform:none}}
