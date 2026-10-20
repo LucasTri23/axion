@@ -105,7 +105,7 @@ tbody td{padding:13px 14px;vertical-align:middle}
 .b-concluido{background:rgba(34,197,94,.12);color:var(--green);border:1px solid rgba(34,197,94,.25)}
 .b-cancelado{background:rgba(239,68,68,.1);color:#fca5a5;border:1px solid rgba(239,68,68,.25)}
 /* Buttons */
-.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 20px;border-radius:8px;font-size:13.5px;font-weight:600;border:none;cursor:pointer;font-family:'Inter',sans-serif;transition:.25s;text-decoration:none}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:42px;box-sizing:border-box;padding:10px 20px;border-radius:9px;font-size:13.5px;line-height:20px;font-weight:600;border:1px solid transparent;cursor:pointer;font-family:'Inter',sans-serif;transition:background .18s,border-color .18s,box-shadow .18s;text-decoration:none;vertical-align:middle}
 .btn-primary{background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff}
 .btn-primary:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(232,117,26,.4)}
 .btn-secondary{background:rgba(58,175,228,.1);border:1px solid rgba(58,175,228,.2);color:var(--sky)}
@@ -114,7 +114,7 @@ tbody td{padding:13px 14px;vertical-align:middle}
 .btn-danger:hover{background:rgba(239,68,68,.2)}
 .btn-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);color:var(--gray2)}
 .btn-ghost:hover{border-color:var(--gray2);color:#fff}
-.btn-sm{padding:6px 12px;font-size:12px}
+.btn-sm{min-height:34px;padding:6px 12px;font-size:12px;line-height:20px}
 /* Forms */
 .fg{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
 .fg label{font-size:11.5px;font-weight:600;color:var(--gray2);letter-spacing:.4px;text-transform:uppercase}
@@ -165,7 +165,7 @@ details.add-form>summary .btn{pointer-events:none}
 @media(max-width:680px){.sidebar{width:58px}.nav-item span:not(.nav-icon){display:none}.sb-badge{display:none}.sb-head img{height:26px}}
 </style>
 </head>
-<body>
+<body class="<?= $activePage === 'producao' ? 'prod-workspace' : '' ?>">
 <div class="layout">
   <aside class="sidebar">
     <div class="sb-head">

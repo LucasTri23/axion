@@ -53,5 +53,9 @@ function prodFiltros(PDO $db,int $os,array $input): array {
     if($q!=='') { $where[]='(descricao LIKE ? OR tag LIKE ? OR desenho LIKE ? OR romaneio LIKE ?)'; array_push($params,...array_fill(0,4,'%'.$q.'%')); }
     $status=$input['status']??''; if(isset(PROD_STATUS[$status])) {$where[]='status=?';$params[]=$status;}
     if((int)($input['responsavel']??0)>0) {$where[]='responsavel_id=?';$params[]=(int)$input['responsavel'];}
-    $s=$db->prepare('SELECT p.*,u.username AS responsavel FROM producao_pecas p LEFT JOIN users u ON u.id=p.responsavel_id WHERE '.implode(' AND ',$where).' ORDER BY p.id');$s->execute($params);return $s->fetchAll();
+    $s=$db->prepare('SELECT p.*,u.username AS responsavel FROM producao_pecas p LEFT JOIN users u ON u.id=p.responsavel_id WHERE '.implode(' AND ',$where).' ORDER BY p.id');$s->execute($params);$rows=$s->fetchAll();
+    $s=$db->prepare("SELECT peca_id,depois FROM producao_auditoria WHERE os_id=? AND acao='importar_peca' ORDER BY id");$s->execute([$os]);$original=[];
+    foreach($s->fetchAll() as $event){$snapshot=json_decode($event['depois'],true);$original[(int)$event['peca_id']]=$snapshot['responsavel_original']??'';}
+    foreach($rows as &$row)if(!$row['responsavel']&&($original[(int)$row['id']]??'')!=='')$row['responsavel']=$original[(int)$row['id']].' (importado, sem login)';unset($row);
+    return $rows;
 }

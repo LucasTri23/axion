@@ -42,7 +42,7 @@ function prodLerXlsx(string $file): array {
         $strings=[];
         if($zip->locateName('xl/sharedStrings.xml')!==false)foreach(prodXlsxStream($zip,'xl/sharedStrings.xml') as $si){$text='';foreach($si->xpath('.//*[local-name()="t"]') as $t)$text.=(string)$t;$strings[]=$text;if(count($strings)>300000)throw new InvalidArgumentException('Planilha com textos demais. Separe por OS.');}
         $aliases=['DATA'=>'data','GRD'=>'data','AVULSAS'=>'avulsas','DESCRICAODOMATERIAL'=>'descricao','DESCRICAOMATERIAL'=>'descricao','TAG'=>'tag','NDESENHO'=>'desenho','NODESENHO'=>'desenho','NUMERODESENHO'=>'desenho','PESO'=>'peso_unitario','PESOUNITARIO'=>'peso_unitario','PESOUNITARIOKG'=>'peso_unitario','RESPONSAVEL'=>'responsavel','RESPOSAVEL'=>'responsavel','NROMANEIO'=>'romaneio','NOROMANEIO'=>'romaneio','STATUSFABRICACAO'=>'status','STATUSDEFABRICACAO'=>'status','QUANTIDADE'=>'quantidade','QTD'=>'quantidade','QTDPECA'=>'quantidade','REVISAO'=>'revisao','PREP'=>'prep','MONT'=>'mont','SOLDA'=>'solda','ACAB'=>'acab','ACABAME'=>'acab','ACABAMENTO'=>'acab','PINT'=>'pint','PINTURA'=>'pint','EXD'=>'exd','EMBARQUE'=>'exd'];
-        $map=[];$rows=[];$errors=[];$header=false;
+        $map=[];$rows=[];$errors=[];$warnings=[];$header=false;
         foreach(prodXlsxStream($zip,$sheetPath) as $row) {
             $line=(int)$row['r'];$cells=[];
             foreach($row->xpath('./*[local-name()="c"]') as $c){$col=preg_replace('/\d/','',(string)$c['r']);$v=$c->xpath('./*[local-name()="v"]');$value=$v?(string)$v[0]:'';$type=(string)$c['t'];if($type==='s')$value=$strings[(int)$value]??'';if($type==='inlineStr'){$value='';foreach($c->xpath('.//*[local-name()="t"]') as $t)$value.=(string)$t;}if($value!=='')$cells[$col]=trim($value);}
@@ -59,16 +59,14 @@ function prodLerXlsx(string $file): array {
                 foreach(['descricao'=>255,'tag'=>150,'desenho'=>255,'avulsas'=>100,'revisao'=>30,'romaneio'=>100] as $key=>$limit)$item[$key]=prodTexto($item,$key,$limit,$key==='descricao');
                 $e=[];$hasSteps=false;foreach(PROD_ETAPAS as $key=>$spec){$value=$item[$key]??'0';$hasSteps=$hasSteps||isset($item[$key]);if(!is_numeric($value))throw new InvalidArgumentException('Avanço inválido em '.$key);$number=(float)$value;$e[$key]=$number>0&&$number<=1?$number*100:$number;}
                 $e=prodEtapas($e);$raw=prodCabecalho($item['status']??'');$status=match($raw){'PINTURA','AGUARDANDOJATO'=>'pintura','ROMANEIO','CONCLUIDO'=>'romaneio','EXPEDIDO','ENTREGUE'=>'expedido','PREPARACAO','EMFABRICACAO'=>'preparacao',default=>'pendente'};
-                if(!$hasSteps)[$status,$e]=prodEstado($status,$e,'pendente');
-                elseif($e['exd']===100)$status='expedido';
-                elseif($status==='pendente'&&array_sum($e)>0)$status='preparacao';
-                if($status==='expedido'&&array_sum($e)!==600)throw new InvalidArgumentException('Peça expedida com etapas incompletas. Confira o status e o avanço.');
+                [$status,$e,$rowWarnings]=prodImportAvanco($status,$e,$hasSteps);
+                foreach($rowWarnings as $warning)$warnings[]=array_merge(['linha'=>$line,'tag'=>$item['tag']],$warning);
                 $item['etapas']=$e;$item['status']=$status;$item['linha']=$line;$rows[]=$item;
                 if(count($rows)>5000)throw new RuntimeException('Importe no máximo 5.000 itens por arquivo.');
             }catch(InvalidArgumentException $e){$errors[]='Linha '.$line.': '.$e->getMessage();if(count($errors)>100)throw new InvalidArgumentException('Mais de 100 erros. Revise o padrão da planilha.');}
         }
         if(!$header)throw new InvalidArgumentException('Cabeçalho não encontrado. Inclua DESCRIÇÃO DO MATERIAL, Nº DESENHO e PESO.');
         if(!$rows&&!$errors)throw new InvalidArgumentException('Nenhuma peça preenchida encontrada.');
-        return ['rows'=>$rows,'errors'=>$errors];
+        return ['rows'=>$rows,'errors'=>$errors,'warnings'=>$warnings];
     }finally{$zip->close();}
 }

@@ -29,6 +29,23 @@ function prodAvanco(array $etapas): float {
     $total=0; foreach(PROD_ETAPAS as $key=>$spec) $total+=($etapas[$key]??0)*$spec[1]/100;
     return $total;
 }
+/** Resolve indicadores antigos conflitantes sem concluir fabricação por suposição. */
+function prodImportAvanco(string $status,array $etapas,bool $hasSteps): array {
+    $e=prodEtapas($etapas);$warnings=[];
+    if(!$hasSteps){[$status,$e]=prodEstado($status,$e,'pendente');return [$status,$e,$warnings];}
+    $fabricado=true;foreach(['prep','mont','solda','acab','pint'] as $key)if($e[$key]!==100)$fabricado=false;
+    if(($e['exd']===100||$status==='expedido')&&!$fabricado){
+        $original=$e;
+        $e['exd']=0;
+        $status=($e['pint']>0)?'pintura':(array_sum($e)>0?'preparacao':'pendente');
+        $warnings[]=['motivo'=>'Embarque/expedição indicados com fabricação incompleta. A expedição não será aplicada; confira a peça após importar. As demais etapas foram preservadas.','etapas_originais'=>$original];
+    }elseif($status==='expedido'&&$e['exd']!==100){
+        $status='romaneio';
+        $warnings[]=['motivo'=>'Status expedido sem embarque concluído. A peça ficará em romaneio para conferência.','etapas_originais'=>$e];
+    }elseif($e['exd']===100)$status='expedido';
+    elseif($status==='pendente'&&array_sum($e)>0)$status='preparacao';
+    return [$status,$e,$warnings];
+}
 function prodPesoGramas(string $input): int {
     $value=str_replace(',','.',trim($input));
     if (!preg_match('/^\d{1,7}(\.\d{1,3})?$/',$value)) throw new InvalidArgumentException('Informe peso unitário em kg, com até três casas decimais.');

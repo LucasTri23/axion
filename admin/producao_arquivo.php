@@ -10,7 +10,13 @@ if($_SERVER['REQUEST_METHOD']==='POST') {
         if(($file['error']??UPLOAD_ERR_NO_FILE)!==UPLOAD_ERR_OK||($file['size']??0)>20*1024*1024)throw new InvalidArgumentException('Envie um arquivo de até 20 MB.');
         $ext=strtolower(pathinfo($file['name'],PATHINFO_EXTENSION));$mime=(new finfo(FILEINFO_MIME_TYPE))->file($file['tmp_name']);
         $allowed=['pdf'=>['application/pdf'],'png'=>['image/png'],'jpg'=>['image/jpeg'],'jpeg'=>['image/jpeg'],'dwg'=>['image/vnd.dwg','application/acad','application/octet-stream'],'dxf'=>['text/plain','application/dxf','image/vnd.dxf','application/octet-stream']];
-        if(!isset($allowed[$ext])||!in_array($mime,$allowed[$ext],true))throw new InvalidArgumentException('Formatos aceitos: PDF, PNG, JPG, DWG e DXF.');
+        $allowed['xlsx']=['application/vnd.openxmlformats-officedocument.spreadsheetml.sheet','application/zip','application/x-zip','application/x-zip-compressed','application/octet-stream'];
+        $allowed['xls']=['application/vnd.ms-excel','application/x-ole-storage','application/CDFV2','application/octet-stream'];
+        $allowed['csv']=['text/csv','text/plain','application/csv','application/vnd.ms-excel'];
+        if(!isset($allowed[$ext])||!in_array($mime,$allowed[$ext],true))throw new InvalidArgumentException('Formatos aceitos: XLSX, XLS, CSV, PDF, PNG, JPG, DWG e DXF.');
+        $signature=file_get_contents($file['tmp_name'],false,null,0,8);
+        if($ext==='xlsx'&&!str_starts_with($signature,"PK\x03\x04"))throw new InvalidArgumentException('Arquivo XLSX inválido.');
+        if($ext==='xls'&&$signature!=="\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1")throw new InvalidArgumentException('Arquivo XLS inválido. Salve como XLSX e tente novamente.');
         if($ext==='dwg'&&!str_starts_with(file_get_contents($file['tmp_name'],false,null,0,6),'AC10'))throw new InvalidArgumentException('Desenho DWG inválido.');
         $nome=basename($file['name']);if(strlen($nome)>255)throw new InvalidArgumentException('Nome do arquivo muito longo.');
         $stored=bin2hex(random_bytes(24)).'.'.$ext;$target=$dir.$stored;
