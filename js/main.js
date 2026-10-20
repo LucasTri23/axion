@@ -667,10 +667,12 @@ function initQuoteForm() {
       btn.innerHTML = `<span class="spin"></span> Enviando...`;
       btn.style.background = '';
     } else if (state === 'success') {
+      if(window.axionToast){window.axionToast('Mensagem enviada com sucesso!','success');setState('idle');return;}
       btn.innerHTML = '✓ Mensagem Enviada com Sucesso!';
       btn.style.background = 'linear-gradient(135deg,#22c55e,#16a34a)';
     } else if (state === 'error') {
-      btn.innerHTML = msg || 'Erro ao enviar. Tente novamente.';
+      if(window.axionToast){window.axionToast(msg || 'Erro ao enviar. Tente novamente.','error');setState('idle');return;}
+      btn.textContent = msg || 'Erro ao enviar. Tente novamente.';
       btn.style.background = 'linear-gradient(135deg,#ef4444,#dc2626)';
     } else {
       btn.disabled = false;

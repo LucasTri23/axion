@@ -42,6 +42,7 @@ function layout_start(string $title, string $activePage): void {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= e($title) ?> — Axion Admin</title>
+<link rel="stylesheet" href="/css/notificacoes.css?v=20261019">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
@@ -221,7 +222,8 @@ function layout_end(): void {
   setTimeout(clock, 10000);
 })();
 </script>
-<?php if(podeGerenciarProducao()): ?><script src="/js/producao-alertas.js" defer></script><?php endif ?>
+<script src="/js/notificacoes.js?v=20261019" defer></script>
+<?php if(podeGerenciarProducao()): ?><script src="/js/producao-alertas.js?v=20261019" defer></script><?php endif ?>
 </body>
 </html>
 <?php

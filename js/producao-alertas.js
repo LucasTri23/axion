@@ -12,12 +12,17 @@
       const id=Number(data.latest?.id||0);
       if(latest!==null&&id>latest){
         document.querySelector('[data-prod-toast]')?.remove();
+        if(window.axionToast){
+          const toast=window.axionToast('Nova atualização de produção: '+data.latest.login+' · '+data.latest.acao.replaceAll('_',' '),'info',{href:'/admin/notificacoes.php',linkText:'Conferir alteração'});
+          if(toast)toast.dataset.prodToast='';
+          latest=Math.max(latest||0,id);return;
+        }
         const toast=document.createElement('a');
         toast.dataset.prodToast='';toast.className='alert alert-success';toast.setAttribute('role','status');
         toast.href='/admin/notificacoes.php';
         toast.textContent='Nova atualização de produção: '+data.latest.login+' · '+data.latest.acao.replaceAll('_',' ')+'. Clique para conferir.';
-        toast.style.cssText='position:fixed;right:20px;bottom:20px;max-width:420px;z-index:100;box-shadow:0 8px 24px #0006';
-        document.body.append(toast);setTimeout(()=>toast.remove(),12000);
+        toast.style.cssText='position:fixed;right:20px;top:20px;max-width:420px;z-index:100;box-shadow:0 8px 24px #0006';
+        document.body.append(toast);setTimeout(()=>toast.remove(),5000);
       }
       latest=Math.max(latest||0,id);
     }catch{/* A próxima consulta recupera falhas transitórias sem interromper o trabalho. */}

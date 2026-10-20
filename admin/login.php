@@ -95,6 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Axion — Acesso Restrito</title>
+<link rel="stylesheet" href="/css/notificacoes.css?v=20261019">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Bebas+Neue&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
@@ -123,7 +124,7 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#04090F 0%
   <div class="shield">🔒 Conexão protegida · Sessão criptografada</div>
 
   <?php if ($timeout): ?>
-    <div class="alert-info">⏱ Sessão expirada por inatividade. Faça login novamente.</div>
+    <div class="alert-info" data-toast="warning">⏱ Sessão expirada por inatividade. Faça login novamente.</div>
   <?php endif ?>
 
   <form method="POST" action="" autocomplete="off">
@@ -145,5 +146,6 @@ body{font-family:'Inter',sans-serif;background:linear-gradient(135deg,#04090F 0%
     <?php endif ?>
   </form>
 </div>
+<script src="/js/notificacoes.js?v=20261019" defer></script>
 </body>
 </html>
