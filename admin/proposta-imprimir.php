@@ -58,6 +58,7 @@ $tipo = $p['tipo'];
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+<link rel="icon" type="image/png" href="/img/logo.png?v=20261019">
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Proposta — <?= e($p['cliente_nome']) ?> — Axion</title>
