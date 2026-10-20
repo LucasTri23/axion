@@ -208,6 +208,8 @@ $tables = [
 
 ];
 
+$tables = array_merge($tables, require __DIR__ . '/admin/_producao_schema.php');
+
 try {
     $pdo = db();
 

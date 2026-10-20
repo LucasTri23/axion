@@ -8,13 +8,15 @@
  */
 require_once __DIR__ . '/_config.php';
 require_once __DIR__ . '/_csrf.php';
+require_once __DIR__ . '/_permissoes.php';
 
 ensureSession();
 
 // Já autenticado → dashboard
 if (!empty($_SESSION['user_id']) && !empty($_SESSION['last_activity'])
     && (time() - $_SESSION['last_activity']) < SESSION_TTL) {
-    redirect('/admin/index.php');
+    $_SESSION['perfil'] = perfilUsuario(db(), (int)$_SESSION['user_id'])['perfil'];
+    redirect(inicioUsuario());
 }
 
 $error   = '';
@@ -59,20 +61,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $user = $stmt->fetch();
 
         // Valida senha com timing-safe compare (password_verify já é timing-safe)
-        if ($user && password_verify($password, $user['password_hash'])) {
+        $access = $user ? perfilUsuario(db(), (int)$user['id']) : null;
+        if ($user && (int)$access['ativo'] && password_verify($password, $user['password_hash'])) {
             logAttempt(true, (int)$user['id']);
 
             // OWASP A07: regenerar ID de sessão após login
             session_regenerate_id(true);
             $_SESSION['user_id']       = (int)$user['id'];
             $_SESSION['username']      = $user['username'];
+            $_SESSION['perfil']        = $access['perfil'];
             $_SESSION['last_activity'] = time();
 
             // Atualiza last_login no BD
             db()->prepare('UPDATE users SET last_login = NOW() WHERE id = ?')
                ->execute([$user['id']]);
 
-            redirect('/admin/index.php');
+            redirect(inicioUsuario());
         } else {
             // Mesmo que usuário não exista — mensagem genérica (A07: no info disclosure)
             logAttempt(false);

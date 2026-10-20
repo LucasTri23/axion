@@ -9,6 +9,9 @@ $NAV = [
     'quotes'     => ['📋', 'Pedidos',         'quotes.php'],
     'propostas'  => ['📄', 'Propostas',       'propostas.php'],
     'financeiro' => ['💰', 'Financeiro',      'financeiro.php'],
+    'producao'   => ['🏭', 'Produção / PCP', 'producao.php'],
+    'notificacoes' => ['🔔', 'Notificações', 'notificacoes.php'],
+    'usuarios'   => ['👥', 'Usuários', 'usuarios.php'],
     'content'    => ['✏️', 'Editar Textos',   'content.php'],
     'images'     => ['🖼️', 'Editar Imagens',  'images.php'],
     'settings'   => ['⚙️', 'Configurações',   'settings.php'],
@@ -25,7 +28,12 @@ function navBadge(): int {
 
 function layout_start(string $title, string $activePage): void {
     global $NAV;
-    $badge = navBadge();
+    $badge = perfilAtual() === 'admin' ? navBadge() : 0;
+    $prodBadge = 0;
+    if (producaoDisponivel(db()) && podeGerenciarProducao()) {
+        $s = db()->prepare('SELECT COUNT(*) FROM producao_notificacoes WHERE user_id=? AND lida_em IS NULL');
+        $s->execute([$_SESSION['user_id']]); $prodBadge = (int)$s->fetchColumn();
+    }
     $user  = e($_SESSION['username'] ?? 'Admin');
 ?>
 <!DOCTYPE html>
@@ -166,12 +174,14 @@ details.add-form>summary .btn{pointer-events:none}
     </div>
     <nav class="sb-nav">
       <?php foreach ($NAV as $key => [$icon, $label, $href]): ?>
+        <?php if (!paginaPermitida(perfilAtual(), $href) || ($key === 'notificacoes' && !podeGerenciarProducao())) continue; ?>
         <a href="/admin/<?= $href ?>" class="nav-item <?= $activePage === $key ? 'active' : '' ?>">
           <span class="nav-icon"><?= $icon ?></span>
           <span><?= e($label) ?></span>
           <?php if ($key === 'quotes' && $badge > 0): ?>
             <span class="n-badge"><?= $badge ?></span>
           <?php endif ?>
+          <?php if ($key === 'notificacoes'): ?><span class="n-badge" data-prod-notifications <?= $prodBadge?'':'hidden' ?>><?= $prodBadge ?></span><?php endif ?>
         </a>
       <?php endforeach ?>
     </nav>
@@ -211,6 +221,7 @@ function layout_end(): void {
   setTimeout(clock, 10000);
 })();
 </script>
+<?php if(podeGerenciarProducao()): ?><script src="/js/producao-alertas.js" defer></script><?php endif ?>
 </body>
 </html>
 <?php

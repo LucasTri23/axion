@@ -53,6 +53,17 @@ layout_start('Configurações', 'settings');
 
 <div style="max-width:520px">
 
+  <?php if (perfilAtual() === 'admin'): ?>
+  <div class="card">
+    <div class="card-title">👥 Usuários e permissões</div>
+    <p style="font-size:13px;color:var(--gray2);line-height:1.7;margin-bottom:16px">Crie acessos individuais para Administrador, PCP e Ajudante. Você também pode editar os usuários, redefinir senhas e ativar ou desativar os acessos.</p>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a href="/admin/usuarios.php" class="btn btn-primary">+ Criar usuário</a>
+      <a href="/admin/usuarios.php#usuarios" class="btn btn-secondary">Gerenciar usuários</a>
+    </div>
+  </div>
+  <?php endif ?>
+
   <div class="card">
     <div class="card-title">🔑 Alterar Senha de Acesso</div>
     <?php if ($msgPass): ?>

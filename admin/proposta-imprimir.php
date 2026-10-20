@@ -350,6 +350,8 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 
   <h3 class="sub">3.1. Dados Fiscais para Emissão de Nota</h3>
   <table class="data-tbl">
+    <tr><th>Regime Tributário</th><td><?= e($g('regime_tributario', 'Lucro Presumido')) ?></td></tr>
+    <tr><th>ICMS</th><td><?= e($g('icms', '18%')) ?></td></tr>
     <tr><th>PIS</th><td><?= e($g('pis')) ?></td></tr>
     <tr><th>COFINS</th><td><?= e($g('cofins')) ?></td></tr>
     <tr><th>ISS</th><td><?= e($g('iss')) ?></td></tr>

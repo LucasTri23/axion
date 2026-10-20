@@ -61,6 +61,8 @@ function defaultsPequena(): array {
         'fornecimento' => "Fabricação dos componentes metálicos conforme desenhos fornecidos\nFornecimento de mão de obra especializada\nFabricação e montagem em oficina\nControle dimensional durante o processo de fabricação\nInspeção visual dos componentes antes da liberação para entrega\nDisponibilização do material para retirada na modalidade FOB",
         'valor_total' => '',
         'obs_fiscal'  => 'Os impostos incidentes deverão ser destacados conforme emissão da nota fiscal e enquadramento fiscal aplicável.',
+        'regime_tributario' => 'Lucro Presumido',
+        'icms' => '18%',
         'pis' => '0,65%', 'cofins' => '3%', 'iss' => '3%', 'inss' => '11%',
         'condicao_pagamento' => '30 dias após a entrega.',
         'prazo_entrega' => '60 dias contados a partir da emissão da ordem de compra e disponibilização de informações técnicas.',
@@ -199,6 +201,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'fornecimento'  => trim($_POST['fornecimento'] ?? ''),
                 'valor_total'   => substr(trim($_POST['valor_total'] ?? ''), 0, 40),
                 'obs_fiscal'    => trim($_POST['obs_fiscal'] ?? ''),
+                'regime_tributario' => substr(trim($_POST['regime_tributario'] ?? 'Lucro Presumido'), 0, 100),
+                'icms'          => substr(trim($_POST['icms'] ?? '18%'), 0, 20),
                 'pis'           => substr(trim($_POST['pis'] ?? ''), 0, 20),
                 'cofins'        => substr(trim($_POST['cofins'] ?? ''), 0, 20),
                 'iss'           => substr(trim($_POST['iss'] ?? ''), 0, 20),
@@ -548,6 +552,10 @@ layout_start('Propostas Comerciais', 'propostas');
     <button type="button" id="add-valor" class="btn btn-ghost btn-sm">+ Adicionar valor</button>
     <div class="fg" style="margin-top:16px"><label>Valor total da proposta (R$)</label>
       <input type="text" name="valor_total" id="valor_total" value="<?= $v('valor_total') ?>" placeholder="Informe o valor total" inputmode="decimal">
+    </div>
+    <div class="frow">
+      <div class="fg"><label>Regime Tributário</label><input type="text" name="regime_tributario" maxlength="100" value="<?= $v('regime_tributario') ?>"></div>
+      <div class="fg"><label>ICMS</label><input type="text" name="icms" maxlength="20" value="<?= $v('icms') ?>"></div>
     </div>
     <div class="fg"><label>Observação fiscal</label>
       <textarea name="obs_fiscal"><?= $v('obs_fiscal') ?></textarea>
