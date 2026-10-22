@@ -9,3 +9,5 @@ admin/_secrets.php
 *.log
 .DS_Store
 Thumbs.db
+admin/_financeiro_backups/
+__pycache__/

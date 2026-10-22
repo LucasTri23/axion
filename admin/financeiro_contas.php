@@ -50,6 +50,7 @@ require __DIR__ . '/_financeiro_nav.php';
 <link rel="stylesheet" href="/css/financeiro.css">
 <?php if (isset($_GET['saved'])): ?><div class="alert alert-success">Situação da conta atualizada.</div><?php endif ?>
 <div class="card fin-filters">
+  <?php if(($filters['limite']??'')==='7'): ?><p class="text-muted">Mostrando vencimentos de amanhã até os próximos 7 dias. <a href="?<?= e(financeiroQuery($filters,['limite'=>''])) ?>">Ver todos os próximos vencimentos</a></p><?php endif ?>
   <div class="card-title">Contas a pagar e receber</div>
   <p class="text-muted">Contas dos lançamentos do fluxo de caixa. O filtro de mês usa o vencimento; contas sem vencimento aparecem quando o mês está vazio. “OK” indica pago ou recebido.</p>
   <nav class="fin-segments" aria-label="Pesquisar por tipo de conta">
@@ -63,6 +64,7 @@ require __DIR__ . '/_financeiro_nav.php';
     <?php endforeach ?>
   </nav>
   <form method="GET" class="frow fin-filter-fields" style="margin-top:16px">
+    <?php if(($filters['limite']??'')==='7'): ?><input type="hidden" name="limite" value="7"><?php endif ?>
     <div class="fg"><label>Mês de vencimento</label><input type="month" name="mes" value="<?= e($filters['mes']) ?>"></div>
     <div class="fg"><label>Obra / OS</label><select name="os"><option value="">Todas as obras</option><?php foreach ($obras as $obra): ?><option value="<?= e($obra['os']) ?>" <?= $filters['os'] === $obra['os'] ? 'selected' : '' ?>><?= e($obra['os'] . ' — ' . ($obra['nome'] ?: 'Sem nome')) ?></option><?php endforeach ?></select></div>
     <div class="fg"><label>Tipo de conta</label><select name="tipo"><option value="">Pagar e receber</option><option value="SAIDA" <?= $filters['tipo'] === 'SAIDA' ? 'selected' : '' ?>>A pagar</option><option value="ENTRADA" <?= $filters['tipo'] === 'ENTRADA' ? 'selected' : '' ?>>A receber</option></select></div>

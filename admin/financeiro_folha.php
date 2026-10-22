@@ -5,6 +5,7 @@
  */
 require_once __DIR__ . '/_auth.php';
 require_once __DIR__ . '/_layout.php';
+require_once __DIR__ . '/_folha_pagamentos.php';
 
 $db = db();
 
@@ -84,9 +85,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($action === 'add_periodo') {
         $data = $_POST['data_periodo'] ?? '';
         $tipo = ($_POST['tipo'] ?? '') === 'Adiantamento' ? 'Adiantamento' : 'Fechamento';
+        $competencia = $_POST['competencia'] ?? '';
+        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $competencia) || !preg_match('/^\d{4}-\d{2}-\d{2}$/D', $data) || !checkdate((int)substr($data,5,2),(int)substr($data,8,2),(int)substr($data,0,4))) redirect('/admin/financeiro_folha.php?err=dados_invalidos');
         if ($data) {
-            $db->prepare('INSERT INTO centro_folha_periodos (data_periodo, tipo) VALUES (?,?)')->execute([$data, $tipo]);
-            auditLog('create', 'centro_folha_periodos', (int)$db->lastInsertId(), ['data_periodo' => $data, 'tipo' => $tipo]);
+            $db->prepare('INSERT INTO centro_folha_periodos (data_periodo, tipo, competencia) VALUES (?,?,?)')->execute([$data, $tipo, $competencia]);
+            auditLog('create', 'centro_folha_periodos', (int)$db->lastInsertId(), ['data_periodo' => $data, 'tipo' => $tipo, 'competencia' => $competencia]);
         }
         redirect('/admin/financeiro_folha.php?saved=1');
     }
@@ -95,10 +98,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int)($_POST['id'] ?? 0);
         $data = $_POST['data_periodo'] ?? '';
         $tipo = ($_POST['tipo'] ?? '') === 'Adiantamento' ? 'Adiantamento' : 'Fechamento';
+        $competencia = $_POST['competencia'] ?? '';
+        if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/D', $competencia)) redirect('/admin/financeiro_folha.php?err=dados_invalidos');
         $parsed = DateTimeImmutable::createFromFormat('!Y-m-d', $data);
         if ($id > 0 && $parsed && $parsed->format('Y-m-d') === $data) {
-            $db->prepare('UPDATE centro_folha_periodos SET data_periodo=?, tipo=? WHERE id=?')->execute([$data, $tipo, $id]);
-            auditLog('update', 'centro_folha_periodos', $id, ['data_periodo' => $data, 'tipo' => $tipo]);
+            $db->prepare('UPDATE centro_folha_periodos SET data_periodo=?, tipo=?, competencia=? WHERE id=?')->execute([$data, $tipo, $competencia, $id]);
+            auditLog('update', 'centro_folha_periodos', $id, ['data_periodo' => $data, 'tipo' => $tipo, 'competencia' => $competencia]);
             redirect('/admin/financeiro_folha.php?saved=1');
         }
         redirect('/admin/financeiro_folha.php?err=dados_invalidos');
@@ -122,9 +127,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $valor     = toFloat($_POST['valor'] ?? '0');
         $vt        = toFloat($_POST['vale_transporte'] ?? '0');
         $obs       = trim($_POST['observacao'] ?? '');
+        if (!is_finite($valor) || !is_finite($vt) || $valor < 0 || $vt < 0 || $valor > 9999999999.99 || $vt > 9999999999.99 || !preg_match('/^.{0,255}$/us', $obs)) {
+            redirect('/admin/financeiro_folha.php?periodo_id=' . $periodoId . '&err=dados_invalidos');
+        }
         if ($periodoId > 0 && $funcId > 0) {
-            $db->prepare('INSERT INTO centro_folha_pagamentos (periodo_id, funcionario_id, valor, vale_transporte, observacao) VALUES (?,?,?,?,?)')
-               ->execute([$periodoId, $funcId, $valor, $vt, $obs]);
+            $db->prepare('INSERT INTO centro_folha_pagamentos (periodo_id, funcionario_id, valor, vale_transporte, observacao,situacao_pagamento,valor_pago) VALUES (?,?,?,?,?,?,?)')
+               ->execute([$periodoId, $funcId, $valor, $vt, $obs, 'pendente', '0.00']);
             auditLog('create', 'centro_folha_pagamentos', (int)$db->lastInsertId(), compact('periodoId', 'funcId', 'valor', 'vt'));
         }
         redirect('/admin/financeiro_folha.php?periodo_id=' . $periodoId . '&saved=1');
@@ -136,14 +144,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $valor = toFloat($_POST['valor'] ?? '0');
         $vt = toFloat($_POST['vale_transporte'] ?? '0');
         $obs = trim($_POST['observacao'] ?? '');
-        $stmt = $db->prepare('SELECT id FROM centro_folha_pagamentos WHERE id=? AND periodo_id=?');
+        $db->beginTransaction();
+        $stmt = $db->prepare('SELECT * FROM centro_folha_pagamentos WHERE id=? AND periodo_id=? FOR UPDATE');
         $stmt->execute([$id, $periodoId]);
-        if ($stmt->fetchColumn() && is_finite($valor) && is_finite($vt) && $valor >= 0 && $vt >= 0 && $valor <= 9999999999.99 && $vt <= 9999999999.99 && preg_match('/^.{0,255}$/us', $obs)) {
-            $db->prepare('UPDATE centro_folha_pagamentos SET valor=?, vale_transporte=?, observacao=? WHERE id=? AND periodo_id=?')
-               ->execute([$valor, $vt, $obs, $id, $periodoId]);
-            auditLog('update', 'centro_folha_pagamentos', $id, compact('valor', 'vt', 'obs'));
+        $old = $stmt->fetch();
+        $expected = (int)round(($valor+$vt)*100);
+        $paid = $old && $old['valor_pago'] !== null ? folhaCentavos($old['valor_pago']) : null;
+        if ($old && is_finite($valor) && is_finite($vt) && $valor >= 0 && $vt >= 0 && $valor <= 9999999999.99 && $vt <= 9999999999.99 && ($paid === null || $paid <= $expected) && preg_match('/^.{0,255}$/us', $obs)) {
+            $status = $paid === null ? 'a_confirmar' : ($paid > 0 ? ($paid >= $expected ? 'pago' : 'parcial') : 'pendente');
+            $db->prepare('UPDATE centro_folha_pagamentos SET valor=?, vale_transporte=?, observacao=?,situacao_pagamento=? WHERE id=? AND periodo_id=?')
+               ->execute([$valor, $vt, $obs, $status, $id, $periodoId]);
+            auditLog('update', 'centro_folha_pagamentos', $id, ['antes'=>$old,'valor'=>$valor,'vt'=>$vt,'obs'=>$obs,'situacao'=>$status]);
+            $db->commit();
             redirect('/admin/financeiro_folha.php?periodo_id=' . $periodoId . '&saved=1');
         }
+        $db->rollBack();
         redirect('/admin/financeiro_folha.php?periodo_id=' . $periodoId . '&err=dados_invalidos');
     }
 
@@ -164,6 +179,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 layout_start('Financeiro — Folha de pagamento', 'financeiro');
 $finTab = 'folha';
 require __DIR__ . '/_financeiro_nav.php';
+?><div style="margin-bottom:18px"><a class="btn btn-secondary" href="/admin/financeiro_funcionarios.php">Funcion?rios e pagamentos do m?s</a></div><?php
 ?>
 
 <?php if (isset($_GET['saved'])): ?><div class="alert alert-success">✔ Salvo com sucesso.</div><?php endif ?>
@@ -235,7 +251,7 @@ if ($periodoId > 0):
         <tbody>
           <?php foreach ($pagamentos as $p): ?>
             <tr>
-              <td class="td-name"><?= e($p['funcionario_nome']) ?><div class="mono" style="font-size:12px;overflow-wrap:anywhere;user-select:all">PIX: <?= e($p['pix_chave'] ?: 'Não informado') ?></div></td>
+              <td class="td-name"><a href="/admin/financeiro_funcionarios.php?id=<?= (int)$p['funcionario_id'] ?>&amp;mes=<?= e($periodo['competencia'] ?? substr($periodo['data_periodo'],0,7)) ?>"><?= e($p['funcionario_nome']) ?></a><div class="mono" style="font-size:12px;overflow-wrap:anywhere;user-select:all">PIX: <?= e($p['pix_chave'] ?: 'Não informado') ?></div></td>
               <td class="mono" style="text-align:right"><?= e(brl($p['valor'])) ?></td>
               <td class="mono" style="text-align:right"><?= $p['vale_transporte'] > 0 ? e(brl($p['vale_transporte'])) : '—' ?></td>
               <td style="font-size:12.5px"><?= e($p['observacao'] ?: '—') ?></td>
@@ -275,77 +291,7 @@ if ($periodoId > 0):
        GROUP BY p.id ORDER BY p.data_periodo DESC"
   )->fetchAll();
 
-  $funcionarios = $db->query('SELECT * FROM centro_funcionarios ORDER BY ativo DESC, nome')->fetchAll();
 ?>
-
-  <div class="card">
-    <div class="card-title">👷 Funcionários</div>
-
-    <details class="add-form">
-      <summary><span class="btn btn-secondary btn-sm">+ Novo funcionário</span></summary>
-      <form method="POST" class="frow" style="margin-top:12px;flex-wrap:wrap">
-        <?= csrfField() ?>
-        <input type="hidden" name="action" value="add_func">
-        <div class="fg"><label>Nome</label><input type="text" name="nome" maxlength="150" required></div>
-        <div class="fg"><label>CPF</label><input type="text" name="cpf" maxlength="20"></div>
-        <div class="fg"><label>Telefone</label><input type="text" name="telefone" maxlength="30"></div>
-        <div class="fg"><label>Chave PIX</label><input type="text" name="pix_chave" maxlength="150"></div>
-        <div class="fg"><label>Dados bancários</label><input type="text" name="banco_info" maxlength="150" placeholder="Agência / conta"></div>
-        <div class="fg"><button type="submit" class="btn btn-primary">Adicionar</button></div>
-      </form>
-    </details>
-
-    <?php if (!$funcionarios): ?>
-      <div class="empty"><div class="empty-icon">👷</div><p>Nenhum funcionário cadastrado ainda.</p></div>
-    <?php else: ?>
-      <table>
-        <thead><tr><th>Nome</th><th>CPF</th><th>Telefone</th><th>PIX</th><th>Status</th><th></th></tr></thead>
-        <tbody>
-          <?php foreach ($funcionarios as $f): $fid = 'func-edit-' . (int)$f['id']; ?>
-            <tr>
-              <td class="td-name"><?= e($f['nome']) ?></td>
-              <td class="mono" style="font-size:12.5px"><?= e(maskDoc($f['cpf'])) ?></td>
-              <td style="font-size:12.5px"><?= e($f['telefone'] ?: '—') ?></td>
-              <td class="mono" style="font-size:12.5px;overflow-wrap:anywhere;user-select:all"><?= e($f['pix_chave'] ?: '—') ?></td>
-              <td><span class="badge <?= $f['ativo'] ? 'b-concluido' : 'b-cancelado' ?>"><?= $f['ativo'] ? 'Ativo' : 'Inativo' ?></span></td>
-              <td style="white-space:nowrap">
-                <a class="btn btn-secondary btn-sm" href="/admin/financeiro_folha.php?edit_func=<?= (int)$f['id'] ?>#<?= $fid ?>">✏️ Editar</a>
-                <form method="POST" style="display:inline">
-                  <?= csrfField() ?>
-                  <input type="hidden" name="action" value="toggle_func">
-                  <input type="hidden" name="id" value="<?= (int)$f['id'] ?>">
-                  <button type="submit" class="btn btn-secondary btn-sm"><?= $f['ativo'] ? '⏸ Desativar' : '▶ Ativar' ?></button>
-                </form>
-                <form method="POST" style="display:inline" onsubmit="return confirm('Excluir este funcionário? (só é possível se ele não tiver pagamentos registrados)')">
-                  <?= csrfField() ?>
-                  <input type="hidden" name="action" value="delete_func">
-                  <input type="hidden" name="id" value="<?= (int)$f['id'] ?>">
-                  <button type="submit" class="btn btn-danger btn-sm">🗑</button>
-                </form>
-              </td>
-            </tr>
-            <?php if ((int)($_GET['edit_func'] ?? 0) === (int)$f['id']): ?>
-            <tr id="<?= $fid ?>">
-              <td colspan="6">
-                <form method="POST" class="frow" style="flex-wrap:wrap;padding:10px 0">
-                  <?= csrfField() ?>
-                  <input type="hidden" name="action" value="edit_func">
-                  <input type="hidden" name="id" value="<?= (int)$f['id'] ?>">
-                  <div class="fg"><label>Nome</label><input type="text" name="nome" maxlength="150" value="<?= e($f['nome']) ?>" required></div>
-                  <div class="fg"><label>CPF</label><input type="text" name="cpf" maxlength="20" value="<?= e($f['cpf']) ?>"></div>
-                  <div class="fg"><label>Telefone</label><input type="text" name="telefone" maxlength="30" value="<?= e($f['telefone']) ?>"></div>
-                  <div class="fg"><label>Chave PIX</label><input type="text" name="pix_chave" maxlength="150" value="<?= e($f['pix_chave']) ?>"></div>
-                  <div class="fg"><label>Dados bancários</label><input type="text" name="banco_info" maxlength="150" value="<?= e($f['banco_info']) ?>"></div>
-                  <div class="fg"><button type="submit" class="btn btn-primary btn-sm">💾 Salvar</button> <a href="/admin/financeiro_folha.php" class="btn btn-ghost btn-sm">Cancelar</a></div>
-                </form>
-              </td>
-            </tr>
-            <?php endif ?>
-          <?php endforeach ?>
-        </tbody>
-      </table>
-    <?php endif ?>
-  </div>
 
   <div class="card">
     <div class="card-title">📅 Períodos de folha</div>
@@ -353,6 +299,7 @@ if ($periodoId > 0):
       <?= csrfField() ?>
       <input type="hidden" name="action" value="add_periodo">
       <div class="fg"><label>Data</label><input type="date" name="data_periodo" required></div>
+      <div class="fg"><label>Competência</label><input type="month" name="competencia" value="<?= e(folhaMes('')) ?>" required></div>
       <div class="fg">
         <label>Tipo</label>
         <select name="tipo">
@@ -371,7 +318,7 @@ if ($periodoId > 0):
         <tbody>
           <?php foreach ($periodos as $p): ?>
             <tr>
-              <td><?= e(date('d/m/Y', strtotime($p['data_periodo']))) ?></td>
+              <td><?= e(date('d/m/Y', strtotime($p['data_periodo']))) ?><div class="td-sub">Competência <?= e($p['competencia'] ?? substr($p['data_periodo'],0,7)) ?></div></td>
               <td><span class="badge <?= $p['tipo']==='Adiantamento' ? 'b-andamento' : 'b-novo' ?>"><?= e($p['tipo']) ?></span></td>
               <td class="mono" style="text-align:right"><?= (int)$p['qtd'] ?></td>
               <td class="mono" style="text-align:right"><?= e(brl($p['total'])) ?></td>
@@ -384,6 +331,7 @@ if ($periodoId > 0):
                     <input type="hidden" name="action" value="edit_periodo">
                     <input type="hidden" name="id" value="<?= (int)$p['id'] ?>">
                     <div class="fg"><label>Data</label><input type="date" name="data_periodo" value="<?= e($p['data_periodo']) ?>" required></div>
+                    <div class="fg"><label>Competência</label><input type="month" name="competencia" value="<?= e($p['competencia'] ?? substr($p['data_periodo'],0,7)) ?>" required></div>
                     <div class="fg"><label>Tipo</label><select name="tipo"><option value="Fechamento" <?= $p['tipo'] === 'Fechamento' ? 'selected' : '' ?>>Fechamento</option><option value="Adiantamento" <?= $p['tipo'] === 'Adiantamento' ? 'selected' : '' ?>>Adiantamento</option></select></div>
                     <div class="fg"><button type="submit" class="btn btn-primary btn-sm">Salvar período</button></div>
                   </form>

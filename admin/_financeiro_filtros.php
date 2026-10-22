@@ -2,7 +2,7 @@
 /** Filtros compartilhados entre consulta, indicadores e exportação. */
 function financeiroFiltros(array $input): array {
     $f = [];
-    foreach (['tipo', 'centro', 'de', 'ate', 'mes', 'os', 'q', 'status', 'ordem', 'base'] as $key) {
+    foreach (['tipo', 'centro', 'de', 'ate', 'mes', 'os', 'q', 'status', 'ordem', 'base', 'limite'] as $key) {
         $f[$key] = is_string($input[$key] ?? null) ? trim($input[$key]) : '';
     }
     foreach (['mes', 'de', 'ate'] as $key) {
@@ -14,6 +14,7 @@ function financeiroFiltros(array $input): array {
         [$f['de'], $f['ate']] = [$f['ate'], $f['de']];
     }
     if (!in_array($f['base'], ['emissao', 'vencimento'], true)) $f['base'] = '';
+    if ($f['limite'] !== '7' || $f['status'] !== 'proximos') $f['limite'] = '';
     if (!in_array($f['tipo'], ['ENTRADA', 'SAIDA'], true)) $f['tipo'] = '';
     if (!in_array($f['status'], ['pendente', 'vencido', 'hoje', 'proximos', 'sem_vencimento', 'quitado'], true)) $f['status'] = '';
     if (!in_array($f['ordem'], ['atual', 'vencimento_asc', 'vencimento_desc', 'emissao_asc', 'emissao_desc'], true)) $f['ordem'] = '';
@@ -65,7 +66,13 @@ function financeiroWhere(array $f, string $dateColumn = 'data_lancamento'): arra
         $today = financeiroHoje();
         if ($f['status'] === 'vencido') { $where[] = 'vencimento < ?'; $params[] = $today; }
         if ($f['status'] === 'hoje') { $where[] = 'vencimento = ?'; $params[] = $today; }
-        if ($f['status'] === 'proximos') { $where[] = 'vencimento > ?'; $params[] = $today; }
+        if ($f['status'] === 'proximos') {
+            $where[] = 'vencimento > ?'; $params[] = $today;
+            if (($f['limite'] ?? '') === '7') {
+                $where[] = 'vencimento <= ?';
+                $params[] = (new DateTimeImmutable($today))->modify('+7 days')->format('Y-m-d');
+            }
+        }
         if ($f['status'] === 'sem_vencimento') $where[] = 'vencimento IS NULL';
     }
     return [$where ? 'WHERE ' . implode(' AND ', $where) : '', $params];

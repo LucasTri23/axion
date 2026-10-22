@@ -115,6 +115,8 @@ require __DIR__ . '/_financeiro_nav.php';
 <?php if (isset($_GET['deleted'])): ?><div class="alert alert-success">🗑 Excluído com sucesso.</div><?php endif ?>
 <?php if (isset($_GET['imported'])): ?><div class="alert alert-success">Dados iniciais da planilha importados com sucesso.</div><?php endif ?>
 
+<?php require __DIR__ . '/_financeiro_rotina_painel.php'; ?>
+
 <div class="card">
   <form method="GET" class="frow">
     <div class="fg"><label>Mês de emissão</label><input type="month" name="mes" value="<?= e($filters['mes']) ?>"></div>

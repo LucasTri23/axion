@@ -25,22 +25,24 @@ function financeiroImportarInicial(PDO $db): array {
             $counts[$table] = count($rows);
         }
         $ids = [];
-        $stmt = $db->prepare('INSERT INTO centro_funcionarios (nome,pix_chave,banco_info) VALUES (?,?,?)');
-        foreach ($data['funcionarios'] as $row) {
+        $stmt = $db->prepare('INSERT INTO centro_funcionarios (nome,cpf,telefone,pix_chave,banco_info) VALUES (?,?,?,?,?)');
+        foreach ($data['cadastros'] as $row) {
             $stmt->execute($row);
             $ids[$row[0]] = (int)$db->lastInsertId();
         }
-        $period = $db->prepare('INSERT INTO centro_folha_periodos (data_periodo,tipo) VALUES (?,?)');
+        $period = $db->prepare('INSERT INTO centro_folha_periodos (data_periodo,tipo,competencia) VALUES (?,?,?)');
         $payment = $db->prepare('INSERT INTO centro_folha_pagamentos (periodo_id,funcionario_id,valor,vale_transporte,observacao) VALUES (?,?,?,?,?)');
         $payments = 0;
         foreach ($data['periodos'] as [$date, $type, $rows]) {
-            $period->execute([$date, $type]);
+            $period->execute([$date, $type, $data['competencias'][$date] ?? substr($date,0,7)]);
             $id = (int)$db->lastInsertId();
             foreach ($rows as [$name, $value, $transport, $note]) {
                 $payment->execute([$id, $ids[$name], $value, $transport, $note]);
                 $payments++;
             }
         }
+        $pending=$db->prepare('INSERT INTO centro_import_pendencias(origem,sha256,dados) VALUES(?,?,?)');
+        foreach($data['pendencias'] as $item)$pending->execute([$data['source'],$data['sha256'],json_encode($item,JSON_UNESCAPED_UNICODE)]);
         $counts['funcionarios'] = count($ids);
         $counts['periodos'] = count($data['periodos']);
         $counts['pagamentos'] = $payments;

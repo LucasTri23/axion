@@ -154,6 +154,7 @@ $tables = [
 'centro_folha_periodos' => "CREATE TABLE IF NOT EXISTS centro_folha_periodos (
     id            INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     data_periodo  DATE NOT NULL,
+    competencia   CHAR(7) NULL,
     tipo          ENUM('Adiantamento','Fechamento') DEFAULT 'Fechamento',
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_data (data_periodo)
@@ -166,12 +167,17 @@ $tables = [
     valor            DECIMAL(12,2) NOT NULL DEFAULT 0,
     vale_transporte  DECIMAL(12,2) NOT NULL DEFAULT 0,
     observacao       VARCHAR(255) DEFAULT '',
+    situacao_pagamento VARCHAR(20) NOT NULL DEFAULT 'a_confirmar',
+    valor_pago DECIMAL(12,2) NULL,
+    data_pagamento DATE NULL,
     created_at       DATETIME DEFAULT CURRENT_TIMESTAMP,
     INDEX idx_periodo (periodo_id),
     INDEX idx_func    (funcionario_id),
     CONSTRAINT fk_pgto_periodo FOREIGN KEY (periodo_id) REFERENCES centro_folha_periodos(id) ON DELETE CASCADE,
     CONSTRAINT fk_pgto_func    FOREIGN KEY (funcionario_id) REFERENCES centro_funcionarios(id) ON DELETE RESTRICT
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci",
+
+'centro_import_pendencias' => "CREATE TABLE IF NOT EXISTS centro_import_pendencias (id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY, origem VARCHAR(255) NOT NULL, sha256 CHAR(64) NOT NULL, dados LONGTEXT NOT NULL, resolvida TINYINT NOT NULL DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
 
 'centro_jato_pintura' => "CREATE TABLE IF NOT EXISTS centro_jato_pintura (
     id          INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
@@ -208,7 +214,7 @@ $tables = [
 
 ];
 
-$tables = array_merge($tables, require __DIR__ . '/admin/_producao_schema.php');
+$tables = array_merge($tables, require __DIR__ . '/admin/_producao_schema.php', require __DIR__ . '/admin/_financeiro_recorrencias_schema.php');
 
 try {
     $pdo = db();
