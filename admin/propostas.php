@@ -125,6 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'resp_contratada'    => trim($_POST['resp_contratada'] ?? ''),
             'resp_contratante'   => trim($_POST['resp_contratante'] ?? ''),
             'observacoes'        => trim($_POST['observacoes'] ?? ''),
+            'obs_escopo'         => trim($_POST['obs_escopo'] ?? ''),
         ];
 
         if ($tipo === 'grande') {
@@ -477,6 +478,9 @@ layout_start('Propostas Comerciais', 'propostas');
       <?php endforeach ?>
     </div>
     <button type="button" id="add-escopo" class="btn btn-ghost btn-sm">➕ Adicionar etapa do escopo</button>
+    <div class="fg" style="margin-top:16px"><label>Observações sobre o escopo (opcional — aparece separado, abaixo do escopo)</label>
+      <textarea name="obs_escopo" placeholder="Ex: Informações complementares sobre o escopo"><?= $v('obs_escopo') ?></textarea>
+    </div>
   </div>
 
   <div class="card">
@@ -532,6 +536,9 @@ layout_start('Propostas Comerciais', 'propostas');
     <button type="button" id="add-item" class="btn btn-ghost btn-sm">➕ Adicionar item</button>
     <div class="fg" style="margin-top:16px"><label>O fornecimento contempla (uma linha por item)</label>
       <textarea name="fornecimento"><?= $v('fornecimento') ?></textarea>
+    </div>
+    <div class="fg"><label>Observações sobre o escopo (opcional — aparece separado, abaixo do escopo)</label>
+      <textarea name="obs_escopo" placeholder="Ex: Informações complementares sobre o escopo"><?= $v('obs_escopo') ?></textarea>
     </div>
   </div>
 

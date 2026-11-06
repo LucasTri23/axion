@@ -142,6 +142,8 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
 .sign{padding-top:18px;border-top:1px solid var(--corp-line)}
 .sign b{color:var(--corp-navy)}
 .footer-bar{border-top:2px solid var(--corp-orange);font-size:9.5px;color:var(--corp-muted)}
+.escopo-obs{margin:14px 0 6px;padding:10px 14px;background:var(--corp-soft);border-left:3px solid var(--corp-line);border-radius:3px;break-inside:avoid;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.escopo-obs p:last-child{margin-bottom:0}
 @media print{
   body{background:#fff}
   .sheet{padding:0 0 8mm;overflow:visible;margin:0;box-shadow:none}
@@ -242,6 +244,13 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
     </div>
   <?php endforeach ?>
 
+  <?php if (trim($g('obs_escopo'))): ?>
+    <div class="escopo-obs">
+      <p><b>Observações sobre o escopo:</b></p>
+      <?= paragraphs($g('obs_escopo')) ?>
+    </div>
+  <?php endif ?>
+
   <div class="escopo-block">
     <h3 class="sub">3.<?= $n ?> Armazenamento e Embalagem</h3>
     <?= paragraphs($g('armazenamento')) ?>
@@ -324,6 +333,12 @@ table.data-tbl tbody tr:nth-child(even) td{background:#f8f9fa}
   </table>
   <p><b>O fornecimento contempla:</b></p>
   <ul><?= bullets($g('fornecimento')) ?></ul>
+  <?php if (trim($g('obs_escopo'))): ?>
+    <div class="escopo-obs">
+      <p><b>Observações sobre o escopo:</b></p>
+      <?= paragraphs($g('obs_escopo')) ?>
+    </div>
+  <?php endif ?>
 
   <h2 class="sec">3. Valor</h2>
   <?php
